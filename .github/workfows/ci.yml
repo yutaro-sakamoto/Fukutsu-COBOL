@@ -1,0 +1,14 @@
+name: test
+on:
+  push:
+  pull_request:
+    types: [opened, reopened, review_requested, synchronize]
+
+jobs:
+  test-client-generator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: freckle/stack-action@v3
+        with:
+          working-directory: client-generator

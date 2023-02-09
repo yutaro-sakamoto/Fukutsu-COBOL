@@ -1,1 +1,0 @@
-# fukutsu-cobol-client-generator

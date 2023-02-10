@@ -1,9 +1,9 @@
 #[cfg(test)]
-pub mod move_tests {
+mod move_tests {
     use super::super::data::*;
     #[test]
     pub fn move_alphanumeric() {
-        let mut src = CobData {
+        let mut src = CobField {
             data: &mut vec![' ' as u8; 5],
             typ: CobFieldType::Alphanumeric,
             digits: 0,
@@ -11,7 +11,7 @@ pub mod move_tests {
             flags: FLAG_NONE,
             pic: "",
         };
-        let mut dst = CobData {
+        let mut dst = CobField {
             data: &mut vec![' ' as u8; 5],
             typ: CobFieldType::Alphanumeric,
             digits: 0,

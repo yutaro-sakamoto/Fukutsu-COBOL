@@ -16,7 +16,9 @@ mod parser_test {
             working-storage section.
             01 ab pic xx value "ab".
             01 cd pic xx value "cd".
-            procedure division."#
+            procedure division.
+            move ab to cd.
+            display cd."#
             ),
             Ok(CobolProgram {
                 identification_division: IdentificationDivision {
@@ -46,7 +48,15 @@ mod parser_test {
                     }),
                 }),
                 procedure_division: Some(ProcedureDivision {
-                    labels_statements: Vec::new()
+                    labels_statements: vec![
+                        LabelStatement::Statement(Statement::Move(MoveStatement {
+                            srcs: vec!["ab"],
+                            dsts: vec!["cd"],
+                        })),
+                        LabelStatement::Statement(Statement::Display(DisplayStatement {
+                            args: vec!["cd"]
+                        }))
+                    ]
                 }),
             })
         );

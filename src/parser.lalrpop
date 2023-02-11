@@ -90,7 +90,7 @@ Statement: Statement<'input> = {
 }
 
 MoveStatement: MoveStatement<'input> = {
-    MOVE Corresponding <srcs:Identifier+> TO <dsts:Identifier+> =>
+    MOVE Corresponding? <srcs:Identifier+> TO <dsts:Identifier+> =>
     MoveStatement {
         srcs: srcs,
         dsts: dsts,

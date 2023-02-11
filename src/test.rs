@@ -19,9 +19,13 @@ mod parser_test {
                 identification_division: IdentificationDivision {
                     program_id: "hello"
                 },
-                environment_division: None,
-                data_division: None,
-                procedure_division: None,
+                environment_division: Some(EnvironmentDivision { dummy: "dummy" }),
+                data_division: Some(DataDivision {
+                    working_storage_section: None,
+                }),
+                procedure_division: Some(ProcedureDivision {
+                    labelsStatements: Vec::new()
+                }),
             })
         );
     }

@@ -18,7 +18,7 @@ pub struct EnvironmentDivision<'a> {
 
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct DataDivision<'a> {
-    pub working_storage_section: WorkingStorageSection<'a>,
+    pub working_storage_section: Option<WorkingStorageSection<'a>>,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
@@ -30,7 +30,7 @@ pub struct WorkingStorageSection<'a> {
 pub struct DataDescription<'a> {
     pub level_number: u8,
     pub entry_name: &'a str,
-    pub descriptions: Vec<DataDescriptionClause<'a>>,
+    pub descriptionClauses: Vec<DataDescriptionClause<'a>>,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]

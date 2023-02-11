@@ -1,12 +1,13 @@
 use crate::data::ast::*;
+use std::str::FromStr;
 
 grammar;
 
 pub CobolProgram: CobolProgram<'input> = {
     <i:IdentificationDivision>
-    <e:EnvironmentDivision>
-    <d:DataDivision>
-    <p:ProcedureDivision>
+    <e:EnvironmentDivision?>
+    <d:DataDivision?>
+    <p:ProcedureDivision?>
     =>
     CobolProgram {
         identification_division: i,
@@ -28,19 +29,54 @@ IdentificationDivision: IdentificationDivision<'input> = {
 
 ProgramID: &'input str = {
     "program-id" "."
-    <id:r"[a-zA-Z_][a-zA-Z_0-9-]*">
+    <Identifier>
     "."
-    => id
+    => <>
 }
 
-EnvironmentDivision: Option<EnvironmentDivision<'input>> = {
-    "environment" "division" "." => None
+EnvironmentDivision: EnvironmentDivision<'input> = {
+    "environment" "division" "." => EnvironmentDivision {
+        dummy: "dummy"
+    },
 }
 
-DataDivision: Option<DataDivision<'input>> = {
-    "data" "division" "." => None
+DataDivision: DataDivision<'input> = {
+    "data" "division" "."
+    <w:WorkingStorageSection?> => DataDivision {
+        working_storage_section: w,
+    }
 }
 
-ProcedureDivision: Option<ProcedureDivision<'input>> = {
-    "procedure" "division" "." => None
+WorkingStorageSection: WorkingStorageSection<'input> = {
+    "working-storage" "section" "."
+    <data_descriptions: DataDescription*> => WorkingStorageSection {
+        data_descriptions: <>
+    }
+}
+
+DataDescription: DataDescription<'input> = {
+    <level_number:r"[0-9][0-9]">
+    <entry_name:Identifier>
+    <descriptionClauses:DataDescriptionClause*>
+    "." =>
+    DataDescription{
+        level_number: i32::from_str(level_number).unwrap() as u8,
+        entry_name: entry_name,
+        descriptionClauses: descriptionClauses,
+    }
+}
+
+DataDescriptionClause: DataDescriptionClause<'input> = {
+    "pic" <"[xX0-9\\(\\)]"> => DataDescriptionClause::Picture(<>),
+    "value" <r#""[^"]""#> => DataDescriptionClause::Value(<>),
+}
+
+ProcedureDivision: ProcedureDivision<'input> = {
+    "procedure" "division" "." => ProcedureDivision {
+        labelsStatements: Vec::new()
+    }
+}
+
+Identifier: &'input str = {
+    r"[a-zA-Z_][a-zA-Z_-]*" => <>
 }

@@ -1,1 +1,1 @@
-# fukutsu-cobol
+# Fukutsu-COBOL

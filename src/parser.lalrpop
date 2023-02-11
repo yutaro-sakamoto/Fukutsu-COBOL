@@ -1,0 +1,46 @@
+use crate::data::ast::*;
+
+grammar;
+
+pub CobolProgram: CobolProgram<'input> = {
+    <i:IdentificationDivision>
+    <e:EnvironmentDivision>
+    <d:DataDivision>
+    <p:ProcedureDivision>
+    =>
+    CobolProgram {
+        identification_division: i,
+        environment_division: e,
+        data_division: d,
+        procedure_division: p,
+    }
+}
+
+IdentificationDivision: IdentificationDivision<'input> = {
+    "identification"
+    "division"
+    "."
+    <id: ProgramID>
+    => IdentificationDivision {
+        program_id: id,
+    }
+}
+
+ProgramID: &'input str = {
+    "program-id" "."
+    <id:r"[a-zA-Z_][a-zA-Z_0-9-]*">
+    "."
+    => id
+}
+
+EnvironmentDivision: Option<EnvironmentDivision<'input>> = {
+    "environment" "division" "." => None
+}
+
+DataDivision: Option<DataDivision<'input>> = {
+    "data" "division" "." => None
+}
+
+ProcedureDivision: Option<ProcedureDivision<'input>> = {
+    "procedure" "division" "." => None
+}

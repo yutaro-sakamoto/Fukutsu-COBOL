@@ -12,13 +12,13 @@ mod parser_test {
             identification division.
             program-id. hello.
             environment division.
-            data division.
-            working-storage section.
-            01 ab pic xx value "ab".
+            DATA division.
+            Working-storage section.
+            01 ab PIC xx value "ab".
             01 cd pic xx value "cd".
             procedure division.
             move ab to cd.
-            display cd."#
+            DisPlay cd."#
             ),
             Ok(CobolProgram {
                 identification_division: IdentificationDivision {

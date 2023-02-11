@@ -30,7 +30,7 @@ pub struct WorkingStorageSection<'a> {
 pub struct DataDescription<'a> {
     pub level_number: u8,
     pub entry_name: &'a str,
-    pub descriptionClauses: Vec<DataDescriptionClause<'a>>,
+    pub description_clauses: Vec<DataDescriptionClause<'a>>,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
@@ -41,7 +41,7 @@ pub enum DataDescriptionClause<'a> {
 
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct ProcedureDivision<'a> {
-    pub labelsStatements: Vec<LabelStatement<'a>>,
+    pub labels_statements: Vec<LabelStatement<'a>>,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
@@ -59,12 +59,11 @@ pub enum Statement<'a> {
 
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct MoveStatement<'a> {
-    pub src: &'a str,
+    pub srcs: Vec<&'a str>,
     pub dsts: Vec<&'a str>,
-    pub corresponding: bool,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct DisplayStatement<'a> {
-    pub arg: Vec<&'a str>,
+    pub args: Vec<&'a str>,
 }

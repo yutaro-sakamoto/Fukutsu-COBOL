@@ -18,9 +18,9 @@ pub CobolProgram: CobolProgram<'input> = {
 }
 
 IdentificationDivision: IdentificationDivision<'input> = {
-    "identification"
-    "division"
-    "."
+    IDENTIFICATION
+    DIVISION
+    DOT
     <id: ProgramID>
     => IdentificationDivision {
         program_id: id,
@@ -28,55 +28,110 @@ IdentificationDivision: IdentificationDivision<'input> = {
 }
 
 ProgramID: &'input str = {
-    "program-id" "."
+    PROGRAM_ID DOT
     <Identifier>
-    "."
+    DOT
     => <>
 }
 
 EnvironmentDivision: EnvironmentDivision<'input> = {
-    "environment" "division" "." => EnvironmentDivision {
+    ENVIRONMENT DIVISION DOT => EnvironmentDivision {
         dummy: "dummy"
     },
 }
 
 DataDivision: DataDivision<'input> = {
-    "data" "division" "."
+    DATA DIVISION DOT
     <w:WorkingStorageSection?> => DataDivision {
         working_storage_section: w,
     }
 }
 
 WorkingStorageSection: WorkingStorageSection<'input> = {
-    "working-storage" "section" "."
+    WORKING_STORAGE SECTION DOT
     <data_descriptions: DataDescription*> => WorkingStorageSection {
         data_descriptions: <>
     }
 }
 
 DataDescription: DataDescription<'input> = {
-    <level_number:r"[0-9][0-9]">
+    <level_number:LevelNumber>
     <entry_name:Identifier>
-    <descriptionClauses:DataDescriptionClause*>
-    "." =>
-    DataDescription{
-        level_number: i32::from_str(level_number).unwrap() as u8,
+    <description_clauses:DataDescriptionClause*>
+    DOT =>
+    DataDescription {
+        level_number: u8::from_str(level_number).unwrap() as u8,
         entry_name: entry_name,
-        descriptionClauses: descriptionClauses,
+        description_clauses: description_clauses,
     }
 }
 
 DataDescriptionClause: DataDescriptionClause<'input> = {
-    "pic" <"[xX0-9\\(\\)]"> => DataDescriptionClause::Picture(<>),
-    "value" <r#""[^"]""#> => DataDescriptionClause::Value(<>),
+    PIC <PicString> => DataDescriptionClause::Picture(<>),
+    VALUE <StrLiteral> => DataDescriptionClause::Value(<>),
 }
 
 ProcedureDivision: ProcedureDivision<'input> = {
-    "procedure" "division" "." => ProcedureDivision {
-        labelsStatements: Vec::new()
+    PROCEDURE DIVISION DOT
+    <LabelStatement*> => ProcedureDivision {
+        labels_statements: <>
     }
 }
 
-Identifier: &'input str = {
-    r"[a-zA-Z_][a-zA-Z_-]*" => <>
+LabelStatement: LabelStatement<'input> = {
+    <Identifier> SECTION DOT => LabelStatement::Section(<>),
+    <Identifier> DOT => LabelStatement::Label(<>),
+    <Statement> DOT => LabelStatement::Statement(<>),
 }
+
+Statement: Statement<'input> = {
+    <MoveStatement> => Statement::Move(<>),
+    <DisplayStatement> => Statement::Display(<>),
+}
+
+MoveStatement: MoveStatement<'input> = {
+    MOVE Corresponding <srcs:Identifier+> TO <dsts:Identifier+> =>
+    MoveStatement {
+        srcs: srcs,
+        dsts: dsts,
+    }
+}
+
+Corresponding: () = {
+    CORRESPONDING,
+    CORR,
+}
+
+DisplayStatement: DisplayStatement<'input> = {
+    DISPLAY <Identifier+> =>
+    DisplayStatement {
+        args: <>
+    }
+}
+
+//Identifier: &'input str = {
+//    r"[a-zA-Z_][0-9a-zA-Z_-]*" => <>
+//}
+
+match {
+    r"identification" => IDENTIFICATION,
+    r"division" => DIVISION,
+    r"program-id" => PROGRAM_ID,
+    r"display" => DISPLAY,
+    r"\." => DOT,
+    r"environment" => ENVIRONMENT,
+    r"data" => DATA,
+    r"working-storage" => WORKING_STORAGE,
+    r"section" => SECTION,
+    r"pic" => PIC,
+    r"corresponding" => CORRESPONDING,
+    r"corr" => CORR,
+    r"move" => MOVE,
+    r"to" => TO,
+    r"procedure" => PROCEDURE,
+    r"value" => VALUE,
+    r"[0-9][0-9]" => LevelNumber,
+    r#""[^"]+""# => StrLiteral,
+}
+else {r#"[xX9]+"# => PicString}
+else {r"[a-zA-Z_][0-9a-zA-Z_-]*" => Identifier}

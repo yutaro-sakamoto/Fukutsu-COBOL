@@ -8,12 +8,15 @@ mod parser_test {
     fn parser_test() {
         assert_eq!(
             parser::CobolProgramParser::new().parse(
-                r"
+                r#"
             identification division.
             program-id. hello.
             environment division.
             data division.
-            procedure division."
+            working-storage section.
+            01 ab pic xx value "ab".
+            01 cd pic xx value "cd".
+            procedure division."#
             ),
             Ok(CobolProgram {
                 identification_division: IdentificationDivision {
@@ -21,10 +24,29 @@ mod parser_test {
                 },
                 environment_division: Some(EnvironmentDivision { dummy: "dummy" }),
                 data_division: Some(DataDivision {
-                    working_storage_section: None,
+                    working_storage_section: Some(WorkingStorageSection {
+                        data_descriptions: vec![
+                            DataDescription {
+                                level_number: 1,
+                                entry_name: "ab",
+                                description_clauses: vec![
+                                    DataDescriptionClause::Picture("xx"),
+                                    DataDescriptionClause::Value("\"ab\""),
+                                ]
+                            },
+                            DataDescription {
+                                level_number: 1,
+                                entry_name: "cd",
+                                description_clauses: vec![
+                                    DataDescriptionClause::Picture("xx"),
+                                    DataDescriptionClause::Value("\"cd\""),
+                                ]
+                            },
+                        ]
+                    }),
                 }),
                 procedure_division: Some(ProcedureDivision {
-                    labelsStatements: Vec::new()
+                    labels_statements: Vec::new()
                 }),
             })
         );

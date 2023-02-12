@@ -1,4 +1,18 @@
+use lazy_static::lazy_static;
 use std::cmp::min;
+use std::marker::Copy;
+use std::sync::Mutex;
+use wasm_bindgen::prelude::*;
+
+/*pub struct DataStorage<'a> {
+    pub arrays: Vec<&'a [u8]>,
+    pub table: Vec<CobField<'a>>,
+}*/
+
+lazy_static! {
+    static ref ARRAYS: Mutex<Vec<Vec<u8>>> = Mutex::new(vec![]);
+    static ref FIELD_TABLE: Mutex<Vec<CobField>> = Mutex::new(vec![]);
+}
 
 /// This struct represens a COBOL data
 /// * data: contents of the COBOL data. The data field can be refered by other CobField.
@@ -16,8 +30,12 @@ use std::cmp::min;
 ///   * FLAG_REAL_BINARY
 ///   * FLAG_IS_POINTER
 /// * pic: the picture string of the COBOL data
-pub struct CobField<'a> {
-    pub data: &'a mut Vec<u8>,
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CobField {
+    pub array_id: u64,
+    pub start_index: usize,
+    pub len: usize,
     pub typ: CobFieldType,
     pub digits: usize,
     pub scale: i64,
@@ -41,6 +59,9 @@ pub struct CobField<'a> {
 /// * NationalEdited: PIC NN,N, PIC NN/NN
 /// * Varying: PIC &, the extension of fukutsu COBOL
 /// * Unicode: PIC U(8), the extension of fukutsu COBOL
+#[wasm_bindgen]
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CobFieldType {
     Group,
     Bool,
@@ -82,7 +103,7 @@ pub const FLAG_REAL_BINARY: u8 = 0x40;
 /// TODO
 pub const FLAG_IS_POINTER: u8 = 0x80;
 
-impl<'a> CobField<'a> {
+impl CobField {
     /// Returns true if FLAG_HAVE_SIGN is specified. Otherwise returns false.
     pub fn is_have_sign(&self) -> bool {
         (self.flags & FLAG_HAVE_SIGN) != 0
@@ -123,28 +144,55 @@ impl<'a> CobField<'a> {
         (self.flags & FLAG_IS_POINTER) != 0
     }
 
-    /// The process of MOVE statement.
-    /// This function write data into from `src`.
-    pub fn move_from(&mut self, src: &CobField) {
-        match self.typ {
-            CobFieldType::Alphanumeric => match src.typ {
-                CobFieldType::Alphanumeric
-                | CobFieldType::AlphanumericAll
-                | CobFieldType::AlphanumericEdited
-                | CobFieldType::National
-                | CobFieldType::NationalAll
-                | CobFieldType::NationalEdited => {
-                    let m = min(self.data.len(), src.data.len());
-                    for i in 0..m {
-                        self.data[i] = src.data[i];
-                    }
-                    for i in m..self.data.len() {
-                        self.data[i] = ' ' as u8;
-                    }
-                }
-                _ => unreachable!("The unimplemented case of move From"),
-            },
-            _ => unreachable!("The unimplemented case of move From"),
-        }
-    }
+    // The process of MOVE statement.
+    // This function write data into from `src`.
+    //pub fn move_from(&mut self, src: &CobField) {
+    //    match self.typ {
+    //        CobFieldType::Alphanumeric => match src.typ {
+    //            CobFieldType::Alphanumeric
+    //            | CobFieldType::AlphanumericAll
+    //            | CobFieldType::AlphanumericEdited
+    //            | CobFieldType::National
+    //            | CobFieldType::NationalAll
+    //            | CobFieldType::NationalEdited => {
+    //                let m = min(self.data.len(), src.data.len());
+    //                for i in 0..m {
+    //                    self.data[i] = src.data[i];
+    //                }
+    //                for i in m..self.data.len() {
+    //                    self.data[i] = ' ' as u8;
+    //                }
+    //            }
+    //            _ => unreachable!("The unimplemented case of move From"),
+    //        },
+    //        _ => unreachable!("The unimplemented case of move From"),
+    //    }
+    //}
 }
+
+type FieldID = usize;
+
+//#[wasm_bindgen]
+//pub fn move_from(dst_id: FieldID, src_id: FieldID) {
+//    let field_table = FIELD_TABLE.lock().unwrap();
+//    match dst.typ {
+//        CobFieldType::Alphanumeric => match src.typ {
+//            CobFieldType::Alphanumeric
+//            | CobFieldType::AlphanumericAll
+//            | CobFieldType::AlphanumericEdited
+//            | CobFieldType::National
+//            | CobFieldType::NationalAll
+//            | CobFieldType::NationalEdited => {
+//                let m = min(dst.data.len(), src.data.len());
+//                for i in 0..m {
+//                    dst.data[i] = src.data[i];
+//                }
+//                for i in m..dst.data.len() {
+//                    dst.data[i] = ' ' as u8;
+//                }
+//            }
+//            _ => unreachable!("The unimplemented case of move From"),
+//        },
+//        _ => unreachable!("The unimplemented case of move From"),
+//    }
+//}

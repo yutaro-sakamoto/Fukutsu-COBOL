@@ -3,31 +3,29 @@ mod move_tests {
     use super::super::data::*;
     #[test]
     pub fn move_alphanumeric() {
-        let mut src = CobField {
-            data: &mut vec![' ' as u8; 5],
-            typ: CobFieldType::Alphanumeric,
+        let src = CobolField {
+            start_index: 0,
+            len: 5,
+            typ: CobolFieldType::Alphanumeric,
             digits: 0,
             scale: 0,
             flags: FLAG_NONE,
             pic: "",
         };
-        let mut dst = CobField {
-            data: &mut vec![' ' as u8; 5],
-            typ: CobFieldType::Alphanumeric,
+        let dst = CobolField {
+            start_index: 5,
+            len: 5,
+            typ: CobolFieldType::Alphanumeric,
             digits: 0,
             scale: 0,
             flags: FLAG_NONE,
             pic: "",
         };
-        let test_data: &[u8] = &['h' as u8, 'e' as u8, 'l' as u8, 'l' as u8, 'o' as u8];
-        for (i, c) in test_data.iter().enumerate() {
-            src.data[i] = *c;
-        }
 
-        dst.move_from(&src);
-
-        for (i, c) in test_data.iter().enumerate() {
-            assert_eq!(dst.data[i], test_data[i]);
-        }
+        let initial_data = ['h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd'].map(|i| i as u8);
+        let mut core: CobolCore = CobolCore::make_by_array(&initial_data);
+        core.move_field(src, dst);
+        assert_eq!(core.field_as_string(dst), "hello".to_string());
+        assert_eq!(core.field_as_string(dst), "world".to_string());
     }
 }

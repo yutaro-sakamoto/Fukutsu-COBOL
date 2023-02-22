@@ -26,6 +26,6 @@ mod move_tests {
         let mut core: CobolCore = CobolCore::make_by_array(&initial_data);
         core.move_field(src, dst);
         assert_eq!(core.field_as_string(dst), "hello".to_string());
-        assert_eq!(core.field_as_string(dst), "world".to_string());
+        assert_eq!(core.field_as_string(src), "hello".to_string());
     }
 }

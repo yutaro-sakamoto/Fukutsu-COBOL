@@ -84,8 +84,7 @@ impl CobolCore {
 ///   * FLAG_REAL_BINARY
 ///   * FLAG_IS_POINTER
 /// * pic: the picture string of the COBOL data
-#[wasm_bindgen]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+
 pub struct CobolField {
     pub start_index: usize,
     pub len: usize,

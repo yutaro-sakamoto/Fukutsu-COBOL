@@ -28,29 +28,41 @@ impl CobolCore {
 
 #[wasm_bindgen]
 impl CobolCore {
-    pub fn new(data_size: usize) -> CobolCore {
+    pub fn new(data_size: i32) -> CobolCore {
         CobolCore {
-            data: vec![0; data_size],
+            data: vec![0; data_size as usize],
+            fields: Vec::new(),
+        }
+    }
+
+    pub fn new_by_string(initial_data: String) -> CobolCore {
+        let bytes = initial_data.as_bytes();
+        let mut data = vec![0 as u8; bytes.len()];
+        for (i, b) in bytes.iter().enumerate() {
+            data[i] = *b;
+        }
+        CobolCore {
+            data: data,
             fields: Vec::new(),
         }
     }
 
     pub fn register_field(
         &mut self,
-        start_index: usize,
-        len: usize,
+        start_index: u32,
+        len: u32,
         typ: CobolFieldType,
-        digits: usize,
-        scale: i64,
+        digits: u32,
+        scale: i32,
         flags: u8,
         pic: String,
     ) -> FieldId {
         self.fields.push(CobolField {
-            start_index: start_index,
-            len: len,
+            start_index: start_index as usize,
+            len: len as usize,
             typ: typ,
-            digits: digits,
-            scale: scale,
+            digits: digits as usize,
+            scale: scale as i64,
             flags: flags,
             pic: pic,
         });

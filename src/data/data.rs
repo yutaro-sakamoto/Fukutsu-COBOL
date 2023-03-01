@@ -14,12 +14,14 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen]
 pub struct CobolCore {
     data: Vec<u8>,
+    fields: Vec<CobolField>,
 }
 
 impl CobolCore {
     pub fn make_by_array(data: &[u8]) -> CobolCore {
         CobolCore {
             data: data.to_vec(),
+            fields: Vec::new(),
         }
     }
 }
@@ -29,29 +31,57 @@ impl CobolCore {
     pub fn new(data_size: usize) -> CobolCore {
         CobolCore {
             data: vec![0; data_size],
+            fields: Vec::new(),
         }
     }
 
-    pub fn move_field(&mut self, src: CobolField, dst: CobolField) {
-        match src.typ {
-            CobolFieldType::Alphanumeric => match src.typ {
-                CobolFieldType::Alphanumeric
-                | CobolFieldType::AlphanumericAll
-                | CobolFieldType::AlphanumericEdited
-                | CobolFieldType::National
-                | CobolFieldType::NationalAll
-                | CobolFieldType::NationalEdited => {
-                    let m = min(src.len, dst.len);
-                    for i in 0..m {
-                        self.data[dst.start_index + i] = self.data[src.start_index + i];
+    pub fn register_field(
+        &mut self,
+        start_index: usize,
+        len: usize,
+        typ: CobolFieldType,
+        digits: usize,
+        scale: i64,
+        flags: u8,
+        pic: String,
+    ) -> FieldId {
+        self.fields.push(CobolField {
+            start_index: start_index,
+            len: len,
+            typ: typ,
+            digits: digits,
+            scale: scale,
+            flags: flags,
+            pic: pic,
+        });
+        self.fields.len() - 1
+    }
+
+    pub fn move_field(&mut self, src_id: FieldId, dst_id: FieldId) -> bool {
+        if let (Some(src), Some(dst)) = (self.fields.get(src_id), self.fields.get(dst_id)) {
+            match src.typ {
+                CobolFieldType::Alphanumeric => match src.typ {
+                    CobolFieldType::Alphanumeric
+                    | CobolFieldType::AlphanumericAll
+                    | CobolFieldType::AlphanumericEdited
+                    | CobolFieldType::National
+                    | CobolFieldType::NationalAll
+                    | CobolFieldType::NationalEdited => {
+                        let m = min(src.len, dst.len);
+                        for i in 0..m {
+                            self.data[dst.start_index + i] = self.data[src.start_index + i];
+                        }
+                        for i in m..dst.len {
+                            self.data[dst.start_index + i] = ' ' as u8;
+                        }
                     }
-                    for i in m..dst.len {
-                        self.data[dst.start_index + i] = ' ' as u8;
-                    }
-                }
+                    _ => unreachable!("The unimplemented case of move From"),
+                },
                 _ => unreachable!("The unimplemented case of move From"),
-            },
-            _ => unreachable!("The unimplemented case of move From"),
+            }
+            true
+        } else {
+            false
         }
     }
 
@@ -59,11 +89,14 @@ impl CobolCore {
         self.data[field.start_index..field.start_index + field.len].to_vec()
     }
 
-    pub fn field_as_string(&self, field: CobolField) -> String {
-        match field.typ {
-            _ => str::from_utf8(&self.data[field.start_index..field.start_index + field.len])
-                .unwrap_or("")
-                .to_string(),
+    pub fn field_as_string(&self, field_id: FieldId) -> String {
+        match self.fields.get(field_id) {
+            Some(field) => match field.typ {
+                _ => str::from_utf8(&self.data[field.start_index..field.start_index + field.len])
+                    .unwrap_or("")
+                    .to_string(),
+            },
+            _ => "".to_string(),
         }
     }
 }
@@ -85,6 +118,8 @@ impl CobolCore {
 ///   * FLAG_IS_POINTER
 /// * pic: the picture string of the COBOL data
 
+#[wasm_bindgen]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CobolField {
     pub start_index: usize,
     pub len: usize,
@@ -92,7 +127,7 @@ pub struct CobolField {
     pub digits: usize,
     pub scale: i64,
     pub flags: u8,
-    pub pic: &'static str,
+    pic: String,
 }
 
 /// The COBOL field type
@@ -197,4 +232,4 @@ impl CobolField {
     }
 }
 
-type FieldID = usize;
+type FieldId = usize;

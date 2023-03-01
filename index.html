@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8" />
+  <title>hello-wasm example</title>
+</head>
+
+<body>
+  <script type="module">
+    import init, { foo } from "./pkg/fukutsu_cobol.js";
+    init().then(() => {
+      console.log(foo());
+    });
+  </script>
+</body>
+
+</html>

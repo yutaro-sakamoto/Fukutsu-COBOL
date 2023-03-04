@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct CobolProgram<'a> {
     pub identification_division: IdentificationDivision<'a>,
@@ -23,20 +25,20 @@ pub struct DataDivision<'a> {
 
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct WorkingStorageSection<'a> {
-    pub data_descriptions: Vec<DataDescription<'a>>,
+    pub data_descriptions: VecDeque<DataDescription<'a>>,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct DataDescription<'a> {
     pub level_number: u8,
     pub entry_name: &'a str,
-    pub description_clauses: Vec<DataDescriptionClause<'a>>,
+    pub description_clauses: Vec<DataDescriptionClause>,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
-pub enum DataDescriptionClause<'a> {
-    Picture(&'a str),
-    Value(&'a str),
+pub enum DataDescriptionClause {
+    Picture(String),
+    Value(String),
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]

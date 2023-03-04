@@ -3,6 +3,7 @@ mod parser_test {
     lalrpop_mod!(pub parser);
 
     use crate::data::ast::*;
+    use std::collections::VecDeque;
 
     #[test]
     fn parser_test() {
@@ -27,24 +28,24 @@ mod parser_test {
                 environment_division: Some(EnvironmentDivision { dummy: "dummy" }),
                 data_division: Some(DataDivision {
                     working_storage_section: Some(WorkingStorageSection {
-                        data_descriptions: vec![
+                        data_descriptions: VecDeque::from(vec![
                             DataDescription {
                                 level_number: 1,
                                 entry_name: "ab",
                                 description_clauses: vec![
-                                    DataDescriptionClause::Picture("xx"),
-                                    DataDescriptionClause::Value("\"ab\""),
+                                    DataDescriptionClause::Picture("xx".to_string()),
+                                    DataDescriptionClause::Value("\"ab\"".to_string()),
                                 ]
                             },
                             DataDescription {
                                 level_number: 1,
                                 entry_name: "cd",
                                 description_clauses: vec![
-                                    DataDescriptionClause::Picture("xx"),
-                                    DataDescriptionClause::Value("\"cd\""),
+                                    DataDescriptionClause::Picture("xx".to_string()),
+                                    DataDescriptionClause::Value("\"cd\"".to_string()),
                                 ]
                             },
-                        ]
+                        ])
                     }),
                 }),
                 procedure_division: Some(ProcedureDivision {

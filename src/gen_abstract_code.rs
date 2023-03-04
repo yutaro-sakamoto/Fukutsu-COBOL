@@ -1,7 +1,98 @@
 use super::abstract_code::AbstractCode;
 use super::data::ast::*;
+use super::data::tree::*;
+use nonempty::{nonempty, NonEmpty};
+use std::cmp::Ordering;
+use std::collections::VecDeque;
+use std::error;
+use std::fmt;
 
-pub fn generate_abstract_code<'a>(program: &'a CobolProgram) -> Vec<AbstractCode> {
+#[derive(Debug, Clone)]
+pub enum CodeGenError {
+    Other(String),
+}
+
+impl fmt::Display for CodeGenError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            CodeGenError::Other(msg) => write!(f, "CodeGenError: {}", msg),
+        }
+    }
+}
+
+impl error::Error for CodeGenError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
+}
+
+/*#[derive(Debug, Clone)]
+struct DataTree {
+    pub parent: Option<Weak<RefCell<DataTree>>>,
+    pub children: Vec<Rc<RefCell<DataTree>>>,
+    pub size: usize,
+    pub level_number: u8,
+    pub descriptions: Vec<DataDescriptionClause>,
+    pub entry_name: String,
+}
+
+impl DataTree {
+    pub fn new() -> DataTree {
+        DataTree {
+            parent: None,
+            children: Vec::new(),
+            size: 0,
+            level_number: 0,
+            descriptions: Vec::new(),
+            entry_name: "".to_string(),
+        }
+    }
+
+    pub fn from_data_description(description: &DataDescription) -> DataTree {
+        DataTree {
+            parent: None,
+            children: Vec::new(),
+            size: 0,
+            level_number: description.level_number,
+            descriptions: Vec::new(),
+            entry_name: description.entry_name.to_string(),
+        }
+    }
+
+    pub fn generate_abstract_code(&self) -> Vec<AbstractCode> {
+        Vec::new()
+    }
+}*/
+
+/// convert the list of data_descriptions to DataTree
+fn get_data_tree<'a>(
+    descriptions: &VecDeque<DataDescription<'a>>,
+) -> Result<Tree<&'a DataDescription<'a>>, CodeGenError> {
+    if descriptions.len() == 0 {
+        return Ok(Tree::new());
+    }
+    Ok(Tree::new())
+}
+
+pub fn generate_abstract_code<'a>(
+    program: &'a CobolProgram,
+) -> Result<Vec<AbstractCode>, CodeGenError> {
+    let mut code = Vec::new();
+
+    /*let data_tree = program
+        .data_division
+        .as_ref()
+        .and_then(|d| d.working_storage_section.as_ref())
+        .map(|w| get_data_tree(&w.data_descriptions));
+    //.map(|tree| tree.map(|t| ));
+
+    let data_initialization_code: Vec<AbstractCode> = match data_tree {
+        None => Vec::new(),
+        Some(Err(e)) => return Err(e),
+        Some(Ok(code_list)) => code_list,
+        Some(k) => (*(k.unwrap())).borrow().generate_abstract_code(),
+    };*/
+
     let procedure_division_code = match &program.procedure_division {
         Some(procedure_division) => procedure_division
             .labels_statements
@@ -27,7 +118,11 @@ pub fn generate_abstract_code<'a>(program: &'a CobolProgram) -> Vec<AbstractCode
             .collect(),
         None => Vec::new(),
     };
-    procedure_division_code
+
+    //code.extend(data_initialization_code);
+    code.extend(procedure_division_code);
+
+    Ok(code)
 }
 
 fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {

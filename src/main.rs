@@ -23,7 +23,8 @@ fn main() {
     let ast = parser::CobolProgramParser::new()
         .parse(sample_source)
         .expect("[Error] parse error");
-    let abstract_code = gen_abstract_code::generate_abstract_code(&ast);
+    let abstract_code =
+        gen_abstract_code::generate_abstract_code(&ast).expect("[Error] code geenration error");
     let js_code = gen_code::js::generate_code(&abstract_code);
     println!("generated javascript code:\n{}", js_code);
 }

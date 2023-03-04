@@ -50,7 +50,7 @@ DataDivision: DataDivision<'input> = {
 WorkingStorageSection: WorkingStorageSection<'input> = {
     WORKING_STORAGE SECTION DOT
     <data_descriptions: DataDescription*> => WorkingStorageSection {
-        data_descriptions: <>
+        data_descriptions: <>.into()
     }
 }
 
@@ -66,9 +66,9 @@ DataDescription: DataDescription<'input> = {
     }
 }
 
-DataDescriptionClause: DataDescriptionClause<'input> = {
-    PIC <PicString> => DataDescriptionClause::Picture(<>),
-    VALUE <StrLiteral> => DataDescriptionClause::Value(<>),
+DataDescriptionClause: DataDescriptionClause = {
+    PIC <PicString> => DataDescriptionClause::Picture(<>.to_string()),
+    VALUE <StrLiteral> => DataDescriptionClause::Value(<>.to_string()),
 }
 
 ProcedureDivision: ProcedureDivision<'input> = {

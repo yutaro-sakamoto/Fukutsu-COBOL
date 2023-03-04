@@ -13,6 +13,8 @@ lalrpop-util = {version = "0.19.7", features = ["lexer"]}
 regex = "1"
 wasm-bindgen = "0.2.84"
 lazy_static = "1.4.0"
+nonempty = "0.8.1"
+slab_tree = "0.3.2"
 
 [build-dependencies]
 lalrpop = "0.19.7"

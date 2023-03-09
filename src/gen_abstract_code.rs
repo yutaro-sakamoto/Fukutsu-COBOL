@@ -1,6 +1,7 @@
 use super::abstract_code::AbstractCode;
 use super::data::ast::*;
 use super::data::tree::*;
+use do_notation::m;
 use nonempty::{nonempty, NonEmpty};
 use std::cmp::Ordering;
 use std::collections::VecDeque;
@@ -66,12 +67,46 @@ impl DataTree {
 
 /// convert the list of data_descriptions to DataTree
 fn get_data_tree<'a>(
-    descriptions: &VecDeque<DataDescription<'a>>,
+    descriptions: &'a VecDeque<DataDescription<'a>>,
 ) -> Result<Tree<&'a DataDescription<'a>>, CodeGenError> {
     if descriptions.len() == 0 {
         return Ok(Tree::new());
     }
-    Ok(Tree::new())
+
+    let insert_error = CodeGenError::Other("Failed to insert a item into tree".to_string());
+
+    let mut tree = Tree::new();
+    let mut description = &descriptions[0];
+    let mut node_id = tree.add(0, &descriptions[0]).ok_or(insert_error.clone())?;
+
+    for new_description in descriptions.range(1..) {
+        match description.level_number.cmp(&new_description.level_number) {
+            Ordering::Equal => {
+                let parent_id = tree.parent_id(node_id).ok_or(insert_error.clone())?;
+                node_id = tree
+                    .add(parent_id, new_description)
+                    .ok_or(insert_error.clone())?;
+            }
+            Ordering::Less => {
+                node_id = tree
+                    .add(node_id, new_description)
+                    .ok_or(insert_error.clone())?;
+            }
+            Ordering::Greater => {
+                while let Some((parent_id, parent_description)) = tree.parent(node_id) {
+                    if parent_description.level_number < new_description.level_number {
+                        break;
+                    }
+                    node_id = parent_id;
+                }
+                node_id = tree
+                    .add(node_id, new_description)
+                    .ok_or(insert_error.clone())?;
+            }
+        }
+        description = new_description;
+    }
+    Ok(tree)
 }
 
 pub fn generate_abstract_code<'a>(
@@ -79,14 +114,13 @@ pub fn generate_abstract_code<'a>(
 ) -> Result<Vec<AbstractCode>, CodeGenError> {
     let mut code = Vec::new();
 
-    /*let data_tree = program
+    let data_tree = program
         .data_division
         .as_ref()
         .and_then(|d| d.working_storage_section.as_ref())
         .map(|w| get_data_tree(&w.data_descriptions));
-    //.map(|tree| tree.map(|t| ));
 
-    let data_initialization_code: Vec<AbstractCode> = match data_tree {
+    /*let data_initialization_code: Vec<AbstractCode> = match data_tree {
         None => Vec::new(),
         Some(Err(e)) => return Err(e),
         Some(Ok(code_list)) => code_list,

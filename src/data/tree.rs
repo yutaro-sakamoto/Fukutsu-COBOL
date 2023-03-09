@@ -1,4 +1,4 @@
-use std::ops::FnMut;
+use do_notation::m;
 
 pub struct Tree<T> {
     v: Vec<Node<T>>,
@@ -76,5 +76,21 @@ impl<T> Tree<T> {
         let old = &mut self.v[node_id].v;
         f(old);
         true
+    }
+
+    pub fn parent_id(&self, node_id: NodeId) -> Option<NodeId> {
+        m! {
+            node <- self.v.get(node_id);
+            node.parent
+        }
+    }
+
+    pub fn parent(&self, node_id: NodeId) -> Option<(NodeId, &T)> {
+        m! {
+            node <- self.v.get(node_id);
+            parent_id <- node.parent;
+            parent <- self.v.get(parent_id);
+            return (parent_id, &parent.v);
+        }
     }
 }

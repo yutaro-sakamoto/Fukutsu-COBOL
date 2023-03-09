@@ -67,6 +67,7 @@ impl DataTree {
 
 /// convert the list of data_descriptions to DataTree
 fn get_data_tree<'a>(
+    root_value: &'a DataDescription<'a>,
     descriptions: &'a VecDeque<DataDescription<'a>>,
 ) -> Result<Tree<&'a DataDescription<'a>>, CodeGenError> {
     if descriptions.len() == 0 {
@@ -77,12 +78,12 @@ fn get_data_tree<'a>(
 
     let mut tree = Tree::new();
     let mut description = &descriptions[0];
-    let mut node_id = tree.add(0, &descriptions[0]).ok_or(insert_error.clone())?;
+    let mut node_id = tree.add(0, root_value).ok_or(insert_error.clone())?;
 
-    for new_description in descriptions.range(1..) {
+    for new_description in descriptions.iter() {
         match description.level_number.cmp(&new_description.level_number) {
             Ordering::Equal => {
-                let parent_id = tree.parent_id(node_id).ok_or(insert_error.clone())?;
+                let parent_id = tree.parent_id(node_id).unwrap_or(node_id);
                 node_id = tree
                     .add(parent_id, new_description)
                     .ok_or(insert_error.clone())?;
@@ -109,23 +110,31 @@ fn get_data_tree<'a>(
     Ok(tree)
 }
 
+fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<AbstractCode> {
+    Vec::new()
+}
+
 pub fn generate_abstract_code<'a>(
     program: &'a CobolProgram,
 ) -> Result<Vec<AbstractCode>, CodeGenError> {
     let mut code = Vec::new();
+    let data_description_root_node = DataDescription {
+        level_number: 0,
+        entry_name: "#!@dummy@!#",
+        description_clauses: Vec::new(),
+    };
 
     let data_tree = program
         .data_division
         .as_ref()
         .and_then(|d| d.working_storage_section.as_ref())
-        .map(|w| get_data_tree(&w.data_descriptions));
+        .map(|w| get_data_tree(&data_description_root_node, &w.data_descriptions));
 
-    /*let data_initialization_code: Vec<AbstractCode> = match data_tree {
+    let data_initialization_code: Vec<AbstractCode> = match data_tree {
         None => Vec::new(),
         Some(Err(e)) => return Err(e),
-        Some(Ok(code_list)) => code_list,
-        Some(k) => (*(k.unwrap())).borrow().generate_abstract_code(),
-    };*/
+        Some(Ok(tree)) => abstract_code_of_data_description_tree(&tree),
+    };
 
     let procedure_division_code = match &program.procedure_division {
         Some(procedure_division) => procedure_division
@@ -153,7 +162,7 @@ pub fn generate_abstract_code<'a>(
         None => Vec::new(),
     };
 
-    //code.extend(data_initialization_code);
+    code.extend(data_initialization_code);
     code.extend(procedure_division_code);
 
     Ok(code)

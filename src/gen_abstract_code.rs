@@ -110,8 +110,58 @@ fn get_data_tree<'a>(
     Ok(tree)
 }
 
+impl<'a> DataDescription<'a> {
+    // TODO
+    pub fn get_data_size(&self) -> u32 {
+        5
+    }
+
+    pub fn get_type(&self) -> String {
+        "CobolFieldType::Alphanumeric".to_string()
+    }
+
+    pub fn get_digits(&self) -> u32 {
+        0
+    }
+
+    pub fn get_scale(&self) -> u32 {
+        0
+    }
+
+    pub fn get_flags_string(&self) -> String {
+        "FLAG_NONE".to_string()
+    }
+
+    pub fn get_pic(&self) -> String {
+        "\"\"".to_string()
+    }
+}
+
 fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<AbstractCode> {
-    Vec::new()
+    match tree.root() {
+        None => Vec::new(),
+        Some(root_id) => {
+            let mut total_data_size = 0;
+            let mut code: Vec<AbstractCode> = Vec::new();
+            for child in tree.children(root_id).iter() {
+                let data_size = child.get_data_size();
+                code.push(AbstractCode::LetVarFunc(
+                    format!("field_{}", child.entry_name).to_string(),
+                    "core.register_field".to_string(),
+                    vec![
+                        total_data_size.to_string(),
+                        data_size.to_string(),
+                        child.get_digits().to_string(),
+                        child.get_scale().to_string(),
+                        child.get_flags_string(),
+                        child.get_pic(),
+                    ],
+                ));
+                total_data_size += data_size
+            }
+            code
+        }
+    }
 }
 
 pub fn generate_abstract_code<'a>(

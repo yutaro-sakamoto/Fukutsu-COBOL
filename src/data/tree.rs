@@ -42,6 +42,22 @@ impl<T> Tree<T> {
         }
     }
 
+    /// get the child nodes of the specifed node.
+    pub fn children(&self, top_node_id: NodeId) -> Vec<&T> {
+        match self.v.get(top_node_id) {
+            Some(top_node) => top_node
+                .children
+                .iter()
+                .map(|child_id| match self.get(*child_id) {
+                    Some(child) => vec![child],
+                    None => vec![],
+                })
+                .flatten()
+                .collect(),
+            None => Vec::new(),
+        }
+    }
+
     pub fn add(&mut self, node_id: NodeId, val: T) -> Option<NodeId> {
         if self.v.is_empty() {
             let new_node = Node::new(val);

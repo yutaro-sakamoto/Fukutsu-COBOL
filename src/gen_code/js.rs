@@ -5,6 +5,9 @@ pub fn generate_code(abstract_code_list: &Vec<AbstractCode>) -> String {
         .iter()
         .map(|x| match x {
             AbstractCode::Func(func_name, args) => format!("{} ({});", func_name, args.join(", ")),
+            AbstractCode::LetVarFunc(var_name, func_name, args) => {
+                format!("let {} = {} ({});", var_name, func_name, args.join(", "))
+            }
         })
         .collect();
     lines.join("\n")

@@ -1,4 +1,4 @@
-use super::abstract_code::AbstractCode;
+use super::abstract_code::{AbstractCode, AbstractPrimitive};
 use super::data::ast::*;
 use super::data::tree::*;
 use do_notation::m;
@@ -124,7 +124,7 @@ impl<'a> DataDescription<'a> {
         0
     }
 
-    pub fn get_scale(&self) -> u32 {
+    pub fn get_scale(&self) -> i32 {
         0
     }
 
@@ -133,7 +133,7 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_pic(&self) -> String {
-        "\"\"".to_string()
+        "".to_string()
     }
 }
 
@@ -149,12 +149,12 @@ fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<
                     format!("field_{}", child.entry_name).to_string(),
                     "core.register_field".to_string(),
                     vec![
-                        total_data_size.to_string(),
-                        data_size.to_string(),
-                        child.get_digits().to_string(),
-                        child.get_scale().to_string(),
-                        child.get_flags_string(),
-                        child.get_pic(),
+                        AbstractPrimitive::UInt(total_data_size),
+                        AbstractPrimitive::UInt(data_size),
+                        AbstractPrimitive::UInt(child.get_digits()),
+                        AbstractPrimitive::Int(child.get_scale()),
+                        AbstractPrimitive::Identifier(child.get_flags_string()),
+                        AbstractPrimitive::String(child.get_pic()),
                     ],
                 ));
                 total_data_size += data_size
@@ -194,13 +194,17 @@ pub fn generate_abstract_code<'a>(
                 LabelStatement::Section(name) => {
                     vec![AbstractCode::Func(
                         "console.log".to_string(),
-                        vec![format!("'Section: {}'", name)],
+                        vec![AbstractPrimitive::String(
+                            format!("Section: {}", name).to_string(),
+                        )],
                     )]
                 }
                 LabelStatement::Label(name) => {
                     vec![AbstractCode::Func(
                         "console.log".to_string(),
-                        vec![format!("'Label: {}'", name)],
+                        vec![AbstractPrimitive::String(
+                            format!("Label: {}", name).to_string(),
+                        )],
                     )]
                 }
                 LabelStatement::Statement(Statement::Move(st)) => convert_move_statement(st),
@@ -226,7 +230,10 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
             .map(|dst| {
                 AbstractCode::Func(
                     "core.move_field".to_string(),
-                    vec![src_name.clone(), format!("{}_field", dst)],
+                    vec![
+                        AbstractPrimitive::Identifier(src_name.clone()),
+                        AbstractPrimitive::Identifier(format!("{}_field", dst).to_string()),
+                    ],
                 )
             })
             .collect()
@@ -237,7 +244,10 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
             .map(|(src, dst)| {
                 AbstractCode::Func(
                     "core.move_field".to_string(),
-                    vec![format!("{}_field", src), format!("{}_field", dst)],
+                    vec![
+                        AbstractPrimitive::Identifier(format!("{}_field", src).to_string()),
+                        AbstractPrimitive::Identifier(format!("{}_field", dst).to_string()),
+                    ],
                 )
             })
             .collect()
@@ -245,9 +255,13 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
 }
 
 fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode> {
-    let args: Vec<String> = st.args.iter().map(|arg| format!("'{}'", arg)).collect();
-    vec![AbstractCode::Func(
-        "console.log".to_string(),
-        vec![args.join(" + ")],
-    )]
+    st.args
+        .iter()
+        .map(|arg| {
+            AbstractCode::Func(
+                "console.log".to_string(),
+                vec![AbstractPrimitive::Identifier(arg.to_string())],
+            )
+        })
+        .collect()
 }

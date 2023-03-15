@@ -117,7 +117,7 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_type(&self) -> String {
-        "CobolFieldType::Alphanumeric".to_string()
+        "wasm.CobolFieldType.Alphanumeric".to_string()
     }
 
     pub fn get_digits(&self) -> u32 {
@@ -129,7 +129,7 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_flags_string(&self) -> String {
-        "FLAG_NONE".to_string()
+        "wasm.FLAG_NONE".to_string()
     }
 
     pub fn get_pic(&self) -> String {
@@ -151,6 +151,7 @@ fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<
                     vec![
                         AbstractPrimitive::UInt(total_data_size),
                         AbstractPrimitive::UInt(data_size),
+                        AbstractPrimitive::Identifier(child.get_type()),
                         AbstractPrimitive::UInt(child.get_digits()),
                         AbstractPrimitive::Int(child.get_scale()),
                         AbstractPrimitive::Identifier(child.get_flags_string()),

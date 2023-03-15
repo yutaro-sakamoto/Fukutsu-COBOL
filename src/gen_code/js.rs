@@ -1,6 +1,11 @@
 use crate::abstract_code::{self, AbstractCode, AbstractPrimitive};
 
 pub fn generate_code(abstract_code_list: &Vec<AbstractCode>) -> String {
+    let header = r#"
+const wasm = require("./pkg");
+let core = wasm.CobolCore.new_by_string("hello_world");
+"#
+    .to_string();
     let lines: Vec<String> = abstract_code_list
         .iter()
         .map(|x| match x {
@@ -25,7 +30,7 @@ pub fn generate_code(abstract_code_list: &Vec<AbstractCode>) -> String {
             }
         })
         .collect();
-    lines.join("\n")
+    header + &lines.join("\n")
 }
 
 fn primitive_to_string(primitive: &AbstractPrimitive) -> String {

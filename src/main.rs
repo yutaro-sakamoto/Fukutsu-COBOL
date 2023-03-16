@@ -26,5 +26,5 @@ fn main() {
     let abstract_code =
         gen_abstract_code::generate_abstract_code(&ast).expect("[Error] code geenration error");
     let js_code = gen_code::js::generate_code(&abstract_code);
-    println!("generated javascript code:\n{}", js_code);
+    println!("{}", js_code);
 }

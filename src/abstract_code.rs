@@ -1,10 +1,10 @@
 pub enum AbstractCode {
-    Func(String, Vec<AbstractPrimitive>),
-    // let <var_name> = <func_name>(<args>)
-    LetVarFunc(String, String, Vec<AbstractPrimitive>),
+    Let(String, AbstractExpr),
+    Expr(AbstractExpr),
 }
 
-pub enum AbstractPrimitive {
+pub enum AbstractExpr {
+    Func(String, Vec<AbstractExpr>),
     String(String),
     Identifier(String),
     UInt(u32),

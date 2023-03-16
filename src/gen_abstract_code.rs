@@ -1,4 +1,4 @@
-use super::abstract_code::{AbstractCode, AbstractPrimitive};
+use super::abstract_code::{AbstractCode, AbstractExpr};
 use super::data::ast::*;
 use super::data::tree::*;
 use do_notation::m;
@@ -145,18 +145,20 @@ fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<
             let mut code: Vec<AbstractCode> = Vec::new();
             for child in tree.children(root_id).iter() {
                 let data_size = child.get_data_size();
-                code.push(AbstractCode::LetVarFunc(
+                code.push(AbstractCode::Let(
                     format!("field_{}", child.entry_name).to_string(),
-                    "core.register_field".to_string(),
-                    vec![
-                        AbstractPrimitive::UInt(total_data_size),
-                        AbstractPrimitive::UInt(data_size),
-                        AbstractPrimitive::Identifier(child.get_type()),
-                        AbstractPrimitive::UInt(child.get_digits()),
-                        AbstractPrimitive::Int(child.get_scale()),
-                        AbstractPrimitive::Identifier(child.get_flags_string()),
-                        AbstractPrimitive::String(child.get_pic()),
-                    ],
+                    AbstractExpr::Func(
+                        "core.register_field".to_string(),
+                        vec![
+                            AbstractExpr::UInt(total_data_size),
+                            AbstractExpr::UInt(data_size),
+                            AbstractExpr::Identifier(child.get_type()),
+                            AbstractExpr::UInt(child.get_digits()),
+                            AbstractExpr::Int(child.get_scale()),
+                            AbstractExpr::Identifier(child.get_flags_string()),
+                            AbstractExpr::String(child.get_pic()),
+                        ],
+                    ),
                 ));
                 total_data_size += data_size
             }
@@ -193,20 +195,18 @@ pub fn generate_abstract_code<'a>(
             .iter()
             .map(|x| match x {
                 LabelStatement::Section(name) => {
-                    vec![AbstractCode::Func(
+                    vec![AbstractCode::Expr(AbstractExpr::Func(
                         "console.log".to_string(),
-                        vec![AbstractPrimitive::String(
+                        vec![AbstractExpr::String(
                             format!("Section: {}", name).to_string(),
                         )],
-                    )]
+                    ))]
                 }
                 LabelStatement::Label(name) => {
-                    vec![AbstractCode::Func(
+                    vec![AbstractCode::Expr(AbstractExpr::Func(
                         "console.log".to_string(),
-                        vec![AbstractPrimitive::String(
-                            format!("Label: {}", name).to_string(),
-                        )],
-                    )]
+                        vec![AbstractExpr::String(format!("Label: {}", name).to_string())],
+                    ))]
                 }
                 LabelStatement::Statement(Statement::Move(st)) => convert_move_statement(st),
                 LabelStatement::Statement(Statement::Display(st)) => convert_display_statement(st),
@@ -229,13 +229,13 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
         st.dsts
             .iter()
             .map(|dst| {
-                AbstractCode::Func(
+                AbstractCode::Expr(AbstractExpr::Func(
                     "core.move_field".to_string(),
                     vec![
-                        AbstractPrimitive::Identifier(src_name.clone()),
-                        AbstractPrimitive::Identifier(format!("{}_field", dst).to_string()),
+                        AbstractExpr::Identifier(src_name.clone()),
+                        AbstractExpr::Identifier(format!("{}_field", dst).to_string()),
                     ],
-                )
+                ))
             })
             .collect()
     } else {
@@ -243,13 +243,13 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
             .iter()
             .zip(st.dsts.iter())
             .map(|(src, dst)| {
-                AbstractCode::Func(
+                AbstractCode::Expr(AbstractExpr::Func(
                     "core.move_field".to_string(),
                     vec![
-                        AbstractPrimitive::Identifier(format!("{}_field", src).to_string()),
-                        AbstractPrimitive::Identifier(format!("{}_field", dst).to_string()),
+                        AbstractExpr::Identifier(format!("{}_field", src).to_string()),
+                        AbstractExpr::Identifier(format!("{}_field", dst).to_string()),
                     ],
-                )
+                ))
             })
             .collect()
     }
@@ -259,10 +259,10 @@ fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode>
     st.args
         .iter()
         .map(|arg| {
-            AbstractCode::Func(
+            AbstractCode::Expr(AbstractExpr::Func(
                 "console.log".to_string(),
-                vec![AbstractPrimitive::Identifier(arg.to_string())],
-            )
+                vec![AbstractExpr::Identifier(arg.to_string())],
+            ))
         })
         .collect()
 }

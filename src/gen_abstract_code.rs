@@ -146,7 +146,7 @@ fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<
             for child in tree.children(root_id).iter() {
                 let data_size = child.get_data_size();
                 code.push(AbstractCode::Let(
-                    field_identifier(child.entry_name),
+                    field_identifier_str(child.entry_name),
                     AbstractExpr::Func(
                         "core.register_field".to_string(),
                         vec![
@@ -232,8 +232,8 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
                     "core.move_field".to_string(),
                     vec![
                         //TODO avoid invoking same procedure many times
-                        AbstractExpr::Identifier(field_identifier(st.srcs[0])),
-                        AbstractExpr::Identifier(field_identifier(dst)),
+                        field_identifier(st.srcs[0]),
+                        field_identifier(dst),
                     ],
                 ))
             })
@@ -245,17 +245,18 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
             .map(|(src, dst)| {
                 AbstractCode::Expr(AbstractExpr::Func(
                     "core.move_field".to_string(),
-                    vec![
-                        AbstractExpr::Identifier(field_identifier(src)),
-                        AbstractExpr::Identifier(field_identifier(dst)),
-                    ],
+                    vec![field_identifier(src), field_identifier(dst)],
                 ))
             })
             .collect()
     }
 }
 
-fn field_identifier(var: &str) -> String {
+fn field_identifier(var: &str) -> AbstractExpr {
+    AbstractExpr::Identifier(field_identifier_str(var))
+}
+
+fn field_identifier_str(var: &str) -> String {
     format!("{}_field", var).to_string()
 }
 
@@ -267,7 +268,7 @@ fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode>
                 "console.log".to_string(),
                 vec![AbstractExpr::Func(
                     "core.field_as_string".to_string(),
-                    vec![AbstractExpr::Identifier(field_identifier(arg))],
+                    vec![field_identifier(arg)],
                 )],
             ))
         })

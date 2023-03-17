@@ -1,0 +1,46 @@
+body {
+  font-family: 'Arial', sans-serif;
+}
+
+#sourceCode {
+  display: block;
+  width: 100%;
+  height: 200px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-family: 'Courier New', monospace;
+}
+
+#runButton {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+#runButton:hover {
+  background-color: #0056b3;
+}
+
+.outputItem {
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.outputItem:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.outputItem:nth-child(odd) {
+  background-color: #e9ecef;
+}
+
+.error {
+  color: red;
+}
+

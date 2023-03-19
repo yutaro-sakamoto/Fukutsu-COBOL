@@ -9,7 +9,11 @@ mod data;
 mod gen_abstract_code;
 mod gen_code;
 mod test;
-fn main() {
+
+use std::fs::File;
+use std::io::prelude::*;
+
+fn main() -> std::io::Result<()> {
     let sample_source = r#"
     identification division.
     program-id. hello.
@@ -34,5 +38,9 @@ fn main() {
         gen_abstract_code::generate_abstract_code(&ast, &data_description_root_node)
             .expect("[Error] code geenration error");
     let js_code = gen_code::js::generate_code(&abstract_code);
-    println!("{}", js_code);
+
+    let mut file = File::create("a.js")?;
+    file.write_all(js_code.as_bytes())?;
+
+    Ok(())
 }

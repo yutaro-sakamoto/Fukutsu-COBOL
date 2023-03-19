@@ -15,10 +15,14 @@ jobs:
       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
     - name: Build
-      run: cargo build --verbose
+      run: |
+        cargo build --verbose
+        wasm-pack build --target=nodejs
 
-    - name: Run
-      run: cargo run
+    - name: Run sample program
+      run: |
+        cargo run test/hello.cbl
+        node hello.js
 
     - name: Test
       run: cargo test --verbose

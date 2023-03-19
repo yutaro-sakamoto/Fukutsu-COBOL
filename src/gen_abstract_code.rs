@@ -116,8 +116,8 @@ impl<'a> DataDescription<'a> {
         5
     }
 
-    pub fn get_type(&self) -> String {
-        "wasm.CobolFieldType.Alphanumeric".to_string()
+    pub fn get_type(&self) -> &'a str {
+        "wasm.CobolFieldType.Alphanumeric"
     }
 
     pub fn get_digits(&self) -> u32 {
@@ -128,27 +128,29 @@ impl<'a> DataDescription<'a> {
         0
     }
 
-    pub fn get_flags_string(&self) -> String {
-        "wasm.FLAG_NONE".to_string()
+    pub fn get_flags_string(&self) -> &'a str {
+        "wasm.FLAG_NONE"
     }
 
-    pub fn get_pic(&self) -> String {
-        "".to_string()
+    pub fn get_pic(&self) -> &'a str {
+        ""
     }
 }
 
-fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<AbstractCode> {
+fn abstract_code_of_data_description_tree<'a>(
+    tree: &Tree<&DataDescription<'a>>,
+) -> Vec<AbstractCode<'a>> {
     match tree.root() {
         None => Vec::new(),
         Some(root_id) => {
             let mut total_data_size = 0;
-            let mut code: Vec<AbstractCode> = Vec::new();
+            let mut code = Vec::new();
             for child in tree.children(root_id).iter() {
                 let data_size = child.get_data_size();
                 code.push(AbstractCode::Let(
-                    field_identifier_str(child.entry_name),
+                    child.entry_name,
                     AbstractExpr::Func(
-                        "core.register_field".to_string(),
+                        "core.register_field",
                         vec![
                             AbstractExpr::UInt(total_data_size),
                             AbstractExpr::UInt(data_size),
@@ -169,21 +171,22 @@ fn abstract_code_of_data_description_tree(tree: &Tree<&DataDescription>) -> Vec<
 
 pub fn generate_abstract_code<'a>(
     program: &'a CobolProgram,
-) -> Result<Vec<AbstractCode>, CodeGenError> {
+    data_description_root_node: &'a DataDescription,
+) -> Result<Vec<AbstractCode<'a>>, CodeGenError> {
     let mut code = Vec::new();
-    let data_description_root_node = DataDescription {
-        level_number: 0,
-        entry_name: "#!@dummy@!#",
-        description_clauses: Vec::new(),
+
+    let data_tree = match program.data_division {
+        Some(ref data_division) => match data_division.working_storage_section {
+            Some(ref working_storage_section) => Some(get_data_tree(
+                &data_description_root_node,
+                &working_storage_section.data_descriptions,
+            )),
+            None => None,
+        },
+        None => None,
     };
 
-    let data_tree = program
-        .data_division
-        .as_ref()
-        .and_then(|d| d.working_storage_section.as_ref())
-        .map(|w| get_data_tree(&data_description_root_node, &w.data_descriptions));
-
-    let data_initialization_code: Vec<AbstractCode> = match data_tree {
+    let data_initialization_code = match data_tree {
         None => Vec::new(),
         Some(Err(e)) => return Err(e),
         Some(Ok(tree)) => abstract_code_of_data_description_tree(&tree),
@@ -194,22 +197,9 @@ pub fn generate_abstract_code<'a>(
             .labels_statements
             .iter()
             .map(|x| match x {
-                LabelStatement::Section(name) => {
-                    vec![AbstractCode::Expr(AbstractExpr::Func(
-                        "console.log".to_string(),
-                        vec![AbstractExpr::String(
-                            format!("Section: {}", name).to_string(),
-                        )],
-                    ))]
-                }
-                LabelStatement::Label(name) => {
-                    vec![AbstractCode::Expr(AbstractExpr::Func(
-                        "console.log".to_string(),
-                        vec![AbstractExpr::String(format!("Label: {}", name).to_string())],
-                    ))]
-                }
                 LabelStatement::Statement(Statement::Move(st)) => convert_move_statement(st),
                 LabelStatement::Statement(Statement::Display(st)) => convert_display_statement(st),
+                _ => Vec::new(),
             })
             .into_iter()
             .flatten()
@@ -220,20 +210,20 @@ pub fn generate_abstract_code<'a>(
     code.extend(data_initialization_code);
     code.extend(procedure_division_code);
 
-    Ok(code)
+    Ok(code.clone())
 }
 
-fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
+fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode<'a>> {
     if st.srcs.len() == 1 {
         st.dsts
             .iter()
             .map(|dst| {
                 AbstractCode::Expr(AbstractExpr::Func(
-                    "core.move_field".to_string(),
+                    "core.move_field",
                     vec![
                         //TODO avoid invoking same procedure many times
-                        field_identifier(st.srcs[0]),
-                        field_identifier(dst),
+                        AbstractExpr::FieldIdentifier(st.srcs[0]),
+                        AbstractExpr::FieldIdentifier(dst),
                     ],
                 ))
             })
@@ -244,31 +234,35 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode> {
             .zip(st.dsts.iter())
             .map(|(src, dst)| {
                 AbstractCode::Expr(AbstractExpr::Func(
-                    "core.move_field".to_string(),
-                    vec![field_identifier(src), field_identifier(dst)],
+                    "core.move_field",
+                    vec![
+                        AbstractExpr::FieldIdentifier(src),
+                        AbstractExpr::FieldIdentifier(dst),
+                    ],
                 ))
             })
             .collect()
     }
 }
 
-fn field_identifier(var: &str) -> AbstractExpr {
-    AbstractExpr::Identifier(field_identifier_str(var))
+/*fn field_identifier<'a, 'b>(var: &'a str) -> AbstractExpr<'b> {
+    //AbstractExpr::Identifier(&field_identifier_str(var).clone()).clone()
+    AbstractExpr::Identifier(format!("{}_field", var).clone().as_str())
 }
 
 fn field_identifier_str(var: &str) -> String {
-    format!("{}_field", var).to_string()
-}
+    format!("{}_field", var)
+}*/
 
-fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode> {
+fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode<'a>> {
     st.args
         .iter()
         .map(|arg| {
             AbstractCode::Expr(AbstractExpr::Func(
-                "console.log".to_string(),
+                "console.log",
                 vec![AbstractExpr::Func(
-                    "core.field_as_string".to_string(),
-                    vec![field_identifier(arg)],
+                    "core.field_as_string",
+                    vec![AbstractExpr::FieldIdentifier(arg)],
                 )],
             ))
         })

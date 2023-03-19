@@ -11,7 +11,7 @@ let core = wasm.CobolCore.new_by_string("hello_world");
         .map(|x| match x {
             AbstractCode::Expr(expr) => format!("{};", expr_to_string(expr)),
             AbstractCode::Let(var_name, expr) => {
-                format!("let {} = {};", var_name, expr_to_string(expr))
+                format!("let field_{} = {};", var_name, expr_to_string(expr))
             }
         })
         .collect();
@@ -20,6 +20,7 @@ let core = wasm.CobolCore.new_by_string("hello_world");
 
 fn expr_to_string(expr: &AbstractExpr) -> String {
     match expr {
+        AbstractExpr::FieldIdentifier(s) => format!("field_{}", s),
         AbstractExpr::Identifier(s) => s.to_string(),
         AbstractExpr::Int(i) => i.to_string(),
         AbstractExpr::UInt(u) => u.to_string(),

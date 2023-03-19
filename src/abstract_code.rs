@@ -1,12 +1,15 @@
-pub enum AbstractCode {
-    Let(String, AbstractExpr),
-    Expr(AbstractExpr),
+#[derive(Clone, Debug)]
+pub enum AbstractCode<'a> {
+    Let(&'a str, AbstractExpr<'a>),
+    Expr(AbstractExpr<'a>),
 }
 
-pub enum AbstractExpr {
-    Func(String, Vec<AbstractExpr>),
-    String(String),
-    Identifier(String),
+#[derive(Clone, Debug)]
+pub enum AbstractExpr<'a> {
+    Func(&'a str, Vec<AbstractExpr<'a>>),
+    String(&'a str),
+    FieldIdentifier(&'a str),
+    Identifier(&'a str),
     UInt(u32),
     Int(i32),
 }

@@ -26,6 +26,3 @@ jobs:
     - name: Run test COBOL programs
       run: |
         make test
-
-    - name: Run the sample program
-      run: make sample

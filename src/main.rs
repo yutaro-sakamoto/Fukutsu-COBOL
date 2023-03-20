@@ -23,6 +23,7 @@ fn print_version() {
 fn main() -> std::io::Result<()> {
     let (args, _) = opts! {
         opt version:bool, desc: "Display the version of Fukutsu-COBOL";
+        opt target:Option<String>, desc: "Specify the language conversion. [possible values: nodejs(default), web]";
         param infile:Option<String>, desc:"Input file name.";
         param outfile:Option<String>, desc:"Output file name.";
     }
@@ -52,7 +53,29 @@ fn main() -> std::io::Result<()> {
             let abstract_code =
                 gen_abstract_code::generate_abstract_code(&ast, &data_description_root_node)
                     .expect("[Error] code geenration error");
-            let js_code = gen_code::js::generate_code(&abstract_code);
+
+            let js_code = match args.target {
+                Some(s) => {
+                    if s.eq("web") {
+                        gen_code::js::generate_code(
+                            gen_code::target::TranslateLanguage::WebJS,
+                            &abstract_code,
+                        )
+                    } else if s.eq("nodejs") {
+                        gen_code::js::generate_code(
+                            gen_code::target::TranslateLanguage::NodeJS,
+                            &abstract_code,
+                        )
+                    } else {
+                        eprintln!("Error: Unknown target `{}`", s);
+                        return Ok(());
+                    }
+                }
+                None => gen_code::js::generate_code(
+                    gen_code::target::TranslateLanguage::NodeJS,
+                    &abstract_code,
+                ),
+            };
 
             let file_path = match args.outfile {
                 Some(file) => file,

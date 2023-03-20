@@ -13,6 +13,6 @@ node:
 	wasm-pack build --target=nodejs --out-dir=./fcbl-nodejs
 
 web:
-	wasm-pack build --target=web --out-dir=./fcbl-web
+	wasm-pack build --target=web --out-dir=./fukutsu-cobol
 
 .PHONY: all test node web

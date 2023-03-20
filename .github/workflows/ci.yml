@@ -26,3 +26,9 @@ jobs:
     - name: Run test COBOL programs
       run: |
         make test
+    
+    - name: Build packages for webbrowser
+      run: |
+        cd test/www/
+        npm install
+        mv ../../fukutsu-cobol/ node_modules

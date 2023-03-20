@@ -1,6 +1,5 @@
-client-generator/.stack-work/
-client-generator/*~
-
+test/www/node_modules
+test/www/.bin
 
 # Added by cargo
 

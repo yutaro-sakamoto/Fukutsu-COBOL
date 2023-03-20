@@ -16,17 +16,16 @@ jobs:
 
     - name: Build
       run: |
-        cargo build --release
-        sudo install target/release/fcbl /usr/bin
-        wasm-pack build --target=nodejs
+        make install
+        make node
+        make web
 
-    - name: Run sample program
-      run: |
-        fcbl test/hello.cbl
-        node hello.js
-
-    - name: Test
+    - name: Unit tests
       run: cargo test --verbose
+
+    - name: Run test COBOL programs
+      run: |
+        make test
 
     - name: Run the sample program
       run: make sample

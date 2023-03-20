@@ -2,7 +2,7 @@ use crate::abstract_code::{self, AbstractCode, AbstractExpr};
 
 pub fn generate_code(abstract_code_list: &Vec<AbstractCode>) -> String {
     let header = r#"
-const wasm = require("./pkg");
+const wasm = require("./fcbl-nodejs");
 let core = wasm.CobolCore.new_by_string("hello_world");
 "#
     .to_string();

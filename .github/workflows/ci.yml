@@ -27,8 +27,9 @@ jobs:
       run: |
         make test
     
-    - name: Build packages for webbrowser
+    - name: Build packages for web browsers
       run: |
         cd test/www/
         npm install
         mv ../../fukutsu-cobol/ node_modules
+        fcbl ../hello.cbl index.js --target=web

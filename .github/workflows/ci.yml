@@ -16,12 +16,13 @@ jobs:
 
     - name: Build
       run: |
-        cargo build --verbose
+        cargo build --release
+        sudo install target/release/fcbl /usr/bin
         wasm-pack build --target=nodejs
 
     - name: Run sample program
       run: |
-        cargo run test/hello.cbl
+        fcbl test/hello.cbl
         node hello.js
 
     - name: Test

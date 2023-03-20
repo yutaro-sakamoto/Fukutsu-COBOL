@@ -19,3 +19,8 @@ rustop = "1.1.2"
 
 [build-dependencies]
 lalrpop = "0.19.7"
+
+
+[[bin]]
+name = "fcbl"
+path = "src/main.rs"

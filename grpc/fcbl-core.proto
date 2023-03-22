@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package example.user;
+
+message Core {
+    int32 id = 2; 
+}
+
+message Field {
+    int32 id = 1;
+}
+
+message RegisterField {
+    uint32 start_index = 1;
+    uint32 len = 2;
+    int32 typ = 3;
+    uint32 digits = 4;
+    int32 scale = 5;
+    int32 flags = 6;
+    string pic = 7;
+}
+
+message NewCore {
+    string name = 1;
+}
+
+/* サービス定義 */
+service UserService {
+  rpc new_core (NewCore) returns (Core) {}
+  rpc register_field (RegisterField) returns (Field) {}
+}

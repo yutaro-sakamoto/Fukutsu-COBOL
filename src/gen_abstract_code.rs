@@ -117,7 +117,13 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_type(&self) -> &'a str {
-        "wasm.CobolFieldType.Alphanumeric"
+        let pic = self.get_pic();
+        // TODO this is a temporary implementation
+        match pic.chars().nth(0) {
+            Some('9') => "wasm.CobolFieldType.NumericDisplay",
+            Some('X') => "wasm.CobolFieldType.Alphanumeric",
+            _ => "wasm.CobolFieldType.Alphanumeric",
+        }
     }
 
     pub fn get_digits(&self) -> u32 {

@@ -8,6 +8,7 @@ mod abstract_code;
 mod data;
 mod gen_abstract_code;
 mod gen_code;
+mod grpc;
 mod test;
 
 use std::fs::File;
@@ -20,17 +21,24 @@ fn print_version() {
     println!("Copyright (C) 2023 Yutaro Sakamoto");
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (args, _) = opts! {
         opt version:bool, desc: "Display the version of Fukutsu-COBOL";
         opt target:Option<String>, desc: "Specify the language conversion. [possible values: nodejs(default), web]";
+        opt grpc_server:bool, desc: "Run as grpc server.";
         param infile:Option<String>, desc:"Input file name.";
         param outfile:Option<String>, desc:"Output file name.";
     }
     .parse_or_exit();
 
-    if (args.version) {
+    if args.version {
         print_version();
+        return Ok(());
+    }
+
+    if (args.grpc_server) {
+        println!("gRPC server mode ...");
+        grpc::main::run_server()?;
         return Ok(());
     }
 

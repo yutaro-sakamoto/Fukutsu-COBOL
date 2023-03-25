@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package example.user;
+package fcbl_core;
 
 message Core {
     int32 id = 2; 
@@ -24,7 +24,6 @@ message NewCore {
     string name = 1;
 }
 
-/* サービス定義 */
 service UserService {
   rpc new_core (NewCore) returns (Core) {}
   rpc register_field (RegisterField) returns (Field) {}

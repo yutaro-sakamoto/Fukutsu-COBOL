@@ -16,6 +16,9 @@ jobs:
 
     - name: Install protoc
       run: sudo apt install -y protobuf-compiler
+    
+    - name: Install buf command
+      run: npm install -g @bufbuild/buf
 
     - name: Build
       run: |
@@ -29,6 +32,12 @@ jobs:
     - name: Run test COBOL programs
       run: |
         make test
+    
+    - name: Build grpc-client
+      run: |
+        cd grpc/web-client
+        yarn install
+        yarn gen:services
     
     - name: Build packages for web browsers
       run: |

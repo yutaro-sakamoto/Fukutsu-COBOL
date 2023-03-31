@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    if (args.grpc_server) {
+    if args.grpc_server {
         println!("gRPC server mode ...");
         grpc::main::run_server()?;
         return Ok(());

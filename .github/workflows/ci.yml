@@ -20,6 +20,14 @@ jobs:
     - name: Install buf command
       run: npm install -g @bufbuild/buf
 
+    - uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Build
       run: |
         make install

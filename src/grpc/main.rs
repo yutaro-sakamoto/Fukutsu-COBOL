@@ -1,4 +1,6 @@
 use tonic::{transport::Server, Request, Response, Status};
+use tonic_web::GrpcWebLayer;
+use tower_http::cors::CorsLayer;
 
 mod fcbl_core {
     tonic::include_proto!("fcbl_core");
@@ -34,10 +36,19 @@ impl UserService for MyUserService {
 #[tokio::main]
 pub async fn run_server() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "127.0.0.1:50051".parse().unwrap();
-    let user = MyUserService::default();
+    let allow_cors = CorsLayer::new()
+        .allow_origin(tower_http::cors::Any)
+        .allow_headers(tower_http::cors::Any)
+        .allow_methods(tower_http::cors::Any);
+    let user_service = MyUserService::default();
+
+    println!("gRPC server listening on {}", addr);
 
     Server::builder()
-        .add_service(UserServiceServer::new(user))
+        .accept_http1(true)
+        .layer(allow_cors)
+        .layer(GrpcWebLayer::new())
+        .add_service(UserServiceServer::new(user_service))
         .serve(addr)
         .await?;
 

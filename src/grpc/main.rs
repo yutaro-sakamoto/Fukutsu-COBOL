@@ -1,3 +1,5 @@
+use fukutsu_cobol::data::data::CobolCore;
+use std::sync::{Arc, Mutex};
 use tonic::{transport::Server, Request, Response, Status};
 use tonic_web::GrpcWebLayer;
 use tower_http::cors::CorsLayer;
@@ -12,8 +14,9 @@ use fcbl_core::{
     Core, Field, NewCore, RegisterField,
 };
 
-#[derive(Default)]
-pub struct MyUserService {}
+pub struct MyUserService {
+    cores: Arc<Mutex<Vec<CobolCore>>>,
+}
 
 #[tonic::async_trait]
 impl UserService for MyUserService {
@@ -30,6 +33,14 @@ impl UserService for MyUserService {
         println!("[dbg] register_field, Got a request: {:?}", request);
         let reply = fcbl_core::Field { id: 0 };
         Ok(Response::new(reply))
+    }
+}
+
+impl Default for MyUserService {
+    fn default() -> Self {
+        Self {
+            cores: Arc::new(Mutex::new(Vec::new())),
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 use fukutsu_cobol::data::data::CobolCore;
+use log::info;
 use std::sync::{Arc, Mutex};
 use tonic::{transport::Server, Request, Response, Status};
 use tonic_web::GrpcWebLayer;
@@ -21,8 +22,11 @@ pub struct MyUserService {
 #[tonic::async_trait]
 impl UserService for MyUserService {
     async fn new_core(&self, request: Request<NewCore>) -> Result<Response<Core>, Status> {
-        println!("[dbg] new_core, Got a request: {:?}", request);
-        let reply = fcbl_core::Core { id: 0 };
+        info!("New_core, Got a request: {:?}", request);
+        let mut cores = self.cores.lock().unwrap();
+        let new_id = cores.len() as i32;
+        cores.push(CobolCore::new(new_id));
+        let reply = fcbl_core::Core { id: new_id };
         Ok(Response::new(reply))
     }
 
@@ -30,7 +34,7 @@ impl UserService for MyUserService {
         &self,
         request: Request<RegisterField>,
     ) -> Result<Response<Field>, Status> {
-        println!("[dbg] register_field, Got a request: {:?}", request);
+        info!("[dbg] register_field, Got a request: {:?}", request);
         let reply = fcbl_core::Field { id: 0 };
         Ok(Response::new(reply))
     }

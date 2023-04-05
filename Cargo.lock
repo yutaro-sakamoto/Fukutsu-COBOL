@@ -339,6 +339,7 @@ dependencies = [
  "do-notation",
  "lalrpop",
  "lalrpop-util",
+ "log",
  "nonempty",
  "prost",
  "prost-derive",

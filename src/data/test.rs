@@ -27,7 +27,7 @@ mod move_tests {
         let hello_field = core.register_field(
             0,
             5,
-            CobolFieldType::Alphanumeric,
+            FIELD_TYPE_ALPHANUMERIC,
             0,
             0,
             FLAG_NONE,
@@ -36,7 +36,7 @@ mod move_tests {
         let world_field = core.register_field(
             5,
             5,
-            CobolFieldType::Alphanumeric,
+            FIELD_TYPE_ALPHANUMERIC,
             0,
             0,
             FLAG_NONE,

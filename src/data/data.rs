@@ -51,7 +51,7 @@ impl CobolCore {
         &mut self,
         start_index: u32,
         len: u32,
-        typ: CobolFieldType,
+        typ: u8,
         digits: u32,
         scale: i32,
         flags: u8,
@@ -71,30 +71,15 @@ impl CobolCore {
 
     pub fn move_field(&mut self, src_id: FieldId, dst_id: FieldId) -> bool {
         if let (Some(src), Some(dst)) = (self.fields.get(src_id), self.fields.get(dst_id)) {
-            match src.typ {
-                CobolFieldType::Alphanumeric => match src.typ {
-                    CobolFieldType::Alphanumeric
-                    | CobolFieldType::AlphanumericAll
-                    | CobolFieldType::AlphanumericEdited
-                    | CobolFieldType::National
-                    | CobolFieldType::NationalAll
-                    | CobolFieldType::NationalEdited => {
-                        let m = min(src.len, dst.len);
-                        for i in 0..m {
-                            self.data[dst.start_index + i] = self.data[src.start_index + i];
-                        }
-                        for i in m..dst.len {
-                            self.data[dst.start_index + i] = ' ' as u8;
-                        }
-                    }
-                    _ => unreachable!("The unimplemented case of move From"),
-                },
-                _ => unreachable!("The unimplemented case of move From"),
+            let m = min(src.len, dst.len);
+            for i in 0..m {
+                self.data[dst.start_index + i] = self.data[src.start_index + i];
             }
-            true
-        } else {
-            false
+            for i in m..dst.len {
+                self.data[dst.start_index + i] = ' ' as u8;
+            }
         }
+        true
     }
 
     pub fn field_as_vec_u8(&self, field: CobolField) -> Vec<u8> {
@@ -135,7 +120,7 @@ impl CobolCore {
 pub struct CobolField {
     pub start_index: usize,
     pub len: usize,
-    pub typ: CobolFieldType,
+    pub typ: u8,
     pub digits: usize,
     pub scale: i64,
     pub flags: u8,
@@ -158,27 +143,24 @@ pub struct CobolField {
 /// * NationalEdited: PIC NN,N, PIC NN/NN
 /// * Varying: PIC &, the extension of fukutsu COBOL
 /// * Unicode: PIC U(8), the extension of fukutsu COBOL
-#[wasm_bindgen]
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum CobolFieldType {
-    Group,
-    Bool,
-    NumericDisplay,
-    Binary,
-    Packed,
-    Float,
-    Double,
-    NumericEdited,
-    Alphanumeric,
-    AlphanumericAll,
-    AlphanumericEdited,
-    National,
-    NationalAll,
-    NationalEdited,
-    Varying,
-    Unicode,
-}
+//#[wasm_bindgen]
+//#[repr(u8)]
+//#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub const FIELD_TYPE_GROUP: u8 = 0;
+pub const FIELD_TYPE_BOOL: u8 = 1;
+pub const FIELD_TYPE_NUMERIC_DISPLAY: u8 = 2;
+pub const FIELD_TYPE_BINARY: u8 = 3;
+pub const FIELD_TYPE_PACKED: u8 = 4;
+pub const FIELD_TYPE_FLOAT: u8 = 5;
+pub const FIELD_TYPE_DOUBLE: u8 = 6;
+pub const FIELD_TYPE_NUMERIC_EDITED: u8 = 7;
+pub const FIELD_TYPE_ALPHANUMERIC: u8 = 8;
+pub const FIELD_TYPE_ALPHANUMERIC_ALL: u8 = 9;
+pub const FIELD_TYPE_ALPHANUMERIC_EDITED: u8 = 10;
+pub const FIELD_TYPE_NATIONAL: u8 = 11;
+pub const FIELD_TYPE_NATIONAL_ALL: u8 = 12;
+pub const FIELD_TYPE_NATIONAL_EDITED: u8 = 13;
+pub const FIELD_TYPE_VARYING: u8 = 14;
 
 /// No option is specified.
 pub const FLAG_NONE: u8 = 0x00;

@@ -4,15 +4,13 @@ use crate::abstract_code::{self, AbstractCode, AbstractExpr};
 pub fn generate_code(target: TranslateLanguage, abstract_code_list: &Vec<AbstractCode>) -> String {
     let header = match target {
         TranslateLanguage::NodeJS => {
-            r#"
-const wasm = require("./fcbl-nodejs");
-let core = wasm.CobolCore.new_by_string("hello_world");
+            r#"const wasm = require("./fcbl-nodejs");
+let core = wasm.CobolCore.new_by_string("helloworld");
 "#
         }
         _ => {
-            r#"
-import * as wasm from "fukutsu-cobol";
-let core = wasm.CobolCore.new_by_string("hello_world");
+            r#"import * as wasm from "fukutsu-cobol";
+let core = wasm.CobolCore.new_by_string("helloworld");
 "#
         }
     }

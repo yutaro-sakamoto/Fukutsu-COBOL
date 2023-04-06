@@ -11,13 +11,14 @@ message Field {
 }
 
 message RegisterField {
-    uint32 start_index = 1;
-    uint32 len = 2;
-    int32 typ = 3;
-    uint32 digits = 4;
-    int32 scale = 5;
-    int32 flags = 6;
-    string pic = 7;
+    int32 core = 1;
+    uint32 start_index = 2;
+    uint32 len = 3;
+    uint32 typ = 4;
+    uint32 digits = 5;
+    int32 scale = 6;
+    uint32 flags = 7;
+    string pic = 8;
 }
 
 message NewCore {

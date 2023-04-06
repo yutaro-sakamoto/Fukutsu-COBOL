@@ -120,9 +120,9 @@ impl<'a> DataDescription<'a> {
         let pic = self.get_pic();
         // TODO this is a temporary implementation
         match pic.chars().nth(0) {
-            Some('9') => "wasm.CobolFieldType.NumericDisplay",
-            Some('X') => "wasm.CobolFieldType.Alphanumeric",
-            _ => "wasm.CobolFieldType.Alphanumeric",
+            Some('9') => "wasm.FIELD_TYPE_NUMERIC_DISPLAY",
+            Some('X') => "wasm.FIELD_TYPE_ALPHANUMERIC",
+            _ => "wasm.FIELD_TYPE_ALPHANUMERIC",
         }
     }
 

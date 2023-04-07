@@ -110,8 +110,12 @@ fn get_data_tree<'a>(
     Ok(tree)
 }
 
+pub enum LiteralData {
+    Printable(String),
+    Bytes(Vec<u8>),
+}
+
 impl<'a> DataDescription<'a> {
-    // TODO
     pub fn get_data_size(&self) -> u32 {
         if let Some(pic) = self.get_picture() {
             match pic {
@@ -125,6 +129,39 @@ impl<'a> DataDescription<'a> {
             }
         } else {
             0
+        }
+    }
+
+    pub fn get_initial_bytes(&self) -> Vec<u8> {
+        if let (Some(value), Some(pic)) = (self.get_value_clause(), self.get_picture()) {
+            let bytes = value.as_bytes();
+            match pic {
+                Picture::Numeric {
+                    digits,
+                    pic,
+                    signed,
+                    scale,
+                } => {
+                    if bytes.len() > digits as usize {
+                        bytes[0..digits as usize].to_vec()
+                    } else {
+                        let mut ret = vec!['0' as u8; digits as usize - bytes.len()];
+                        ret.extend(bytes.to_vec());
+                        ret
+                    }
+                }
+                Picture::Alphanumeric { len, pic } => {
+                    if bytes.len() > len as usize {
+                        bytes[0..len as usize].to_vec()
+                    } else {
+                        let mut ret = vec!['0' as u8; len as usize - bytes.len()];
+                        ret.extend(bytes.to_vec());
+                        ret
+                    }
+                }
+            }
+        } else {
+            Vec::new()
         }
     }
 
@@ -161,7 +198,19 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_scale(&self) -> i32 {
-        0
+        if let Some(pic) = self.get_picture() {
+            match pic {
+                Picture::Numeric {
+                    digits,
+                    pic,
+                    signed,
+                    scale,
+                } => scale,
+                _ => 0,
+            }
+        } else {
+            0
+        }
     }
 
     pub fn get_flags_string(&self) -> &'a str {
@@ -169,7 +218,19 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_pic(&self) -> &'a str {
-        ""
+        if let Some(pic) = self.get_picture() {
+            match pic {
+                Picture::Numeric {
+                    digits,
+                    pic,
+                    signed,
+                    scale,
+                } => pic,
+                Picture::Alphanumeric { pic, len } => pic,
+            }
+        } else {
+            ""
+        }
     }
 }
 

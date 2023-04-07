@@ -168,11 +168,19 @@ pub fn parse_pic_9_v<'a>(pic: &'a str) -> Option<Picture<'a>> {
 }
 
 impl<'a> DataDescription<'a> {
-    //pub description_clauses: Vec<DataDescriptionClause<'a>>,
     pub fn get_picture(&self) -> Option<Picture<'a>> {
         for clause in &self.description_clauses {
             match clause {
                 DataDescriptionClause::Picture(pic) => return Some(pic.clone()),
+                _ => (),
+            }
+        }
+        None
+    }
+    pub fn get_value_clause(&self) -> Option<String> {
+        for clause in &self.description_clauses {
+            match clause {
+                DataDescriptionClause::Value(s) => return Some(s.clone()),
                 _ => (),
             }
         }

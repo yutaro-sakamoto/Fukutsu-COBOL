@@ -113,21 +113,51 @@ fn get_data_tree<'a>(
 impl<'a> DataDescription<'a> {
     // TODO
     pub fn get_data_size(&self) -> u32 {
-        5
+        if let Some(pic) = self.get_picture() {
+            match pic {
+                Picture::Numeric {
+                    digits,
+                    pic,
+                    signed,
+                    scale,
+                } => digits,
+                Picture::Alphanumeric { len, pic } => len,
+            }
+        } else {
+            0
+        }
     }
 
     pub fn get_type(&self) -> &'a str {
-        let pic = self.get_pic();
-        // TODO this is a temporary implementation
-        match pic.chars().nth(0) {
-            Some('9') => "wasm.FIELD_TYPE_NUMERIC_DISPLAY",
-            Some('X') => "wasm.FIELD_TYPE_ALPHANUMERIC",
-            _ => "wasm.FIELD_TYPE_ALPHANUMERIC",
+        if let Some(pic) = self.get_picture() {
+            match pic {
+                Picture::Numeric {
+                    digits,
+                    pic,
+                    signed,
+                    scale,
+                } => "wasm.TYPE_NUMERIC_DISPLAY",
+                Picture::Alphanumeric { pic, len } => "wasm.TYPE_ALPHANUMERIC",
+            }
+        } else {
+            "wasm.TYPE_ALPHANUMERIC"
         }
     }
 
     pub fn get_digits(&self) -> u32 {
-        0
+        if let Some(pic) = self.get_picture() {
+            match pic {
+                Picture::Numeric {
+                    digits,
+                    pic,
+                    signed,
+                    scale,
+                } => digits,
+                _ => 0,
+            }
+        } else {
+            0
+        }
     }
 
     pub fn get_scale(&self) -> i32 {

@@ -33,7 +33,10 @@ mod parser_test {
                                 level_number: 1,
                                 entry_name: "ab",
                                 description_clauses: vec![
-                                    DataDescriptionClause::Picture("xx".to_string()),
+                                    DataDescriptionClause::Picture(Picture::Alphanumeric {
+                                        pic: "xx",
+                                        len: 2
+                                    }),
                                     DataDescriptionClause::Value("\"ab\"".to_string()),
                                 ]
                             },
@@ -41,7 +44,10 @@ mod parser_test {
                                 level_number: 1,
                                 entry_name: "cd",
                                 description_clauses: vec![
-                                    DataDescriptionClause::Picture("xx".to_string()),
+                                    DataDescriptionClause::Picture(Picture::Alphanumeric {
+                                        pic: "xx",
+                                        len: 2
+                                    }),
                                     DataDescriptionClause::Value("\"cd\"".to_string()),
                                 ]
                             },

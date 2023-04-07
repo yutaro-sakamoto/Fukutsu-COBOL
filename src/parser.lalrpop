@@ -66,8 +66,8 @@ DataDescription: DataDescription<'input> = {
     }
 }
 
-DataDescriptionClause: DataDescriptionClause = {
-    PIC <PicString> => DataDescriptionClause::Picture(<>.to_string()),
+DataDescriptionClause: DataDescriptionClause<'input> = {
+    PIC <Picture> => DataDescriptionClause::Picture(<>),
     VALUE <StrLiteral> => DataDescriptionClause::Value(<>.to_string()),
 }
 
@@ -109,9 +109,12 @@ DisplayStatement: DisplayStatement<'input> = {
     }
 }
 
-//Identifier: &'input str = {
-//    r"[a-zA-Z_][0-9a-zA-Z_-]*" => <>
-//}
+pub Picture: Picture<'input> = {
+    <PIC_X> => Picture::Alphanumeric{ pic: <>, len: size_pic_with_brackets(<>)}
+    //<PIC_LEADING_P_9>=>  parse_pic_9_leading_p(<>),
+    //<PIC_TRAILING_P_9> =>  parse_pic_9_trailing_p(<>),
+    //<PIC_9_V> =>  parse_pic_9_v(<>),
+}
 
 match {
     r"[iI][dD][eE][nN][tT][iI][fF][iI][cC][aA][tT][iI][oO][nN]" => IDENTIFICATION,
@@ -132,6 +135,11 @@ match {
     r"[vV][aA][lL][uU][eE]" => VALUE,
     r"[0-9][0-9]" => LevelNumber,
     r#""[^"]+""# => StrLiteral,
+
+    r"([xXaA](\([0-9]+\))?)+" => PIC_X,
+    //r"[sS]?[pP]*(9(\([0-9]+\)))+" => PIC_LEADING_P_9,
+    //r"[sS]?(9(\([0-9]+\)))+[pP]*" => PIC_TRAILING_P_9,
+    //r"[sS]?(9(\([0-9]+\)))+V(9(\([0-9]+\)))*" => PIC_9_V,
+} else {
+    r"[a-zA-Z_][0-9a-zA-Z_-]*" => Identifier
 }
-else {r#"[xX9]+"# => PicString}
-else {r"[a-zA-Z_][0-9a-zA-Z_-]*" => Identifier}

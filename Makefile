@@ -6,8 +6,9 @@ install:
 	sudo install target/release/fcbl /usr/bin
 
 test:
-	fcbl test/hello.cbl hello.js
-	node hello.js
+	@cargo run test/hello.cbl hello.js 
+	@cp user_lib/fcbl_lib.js .
+	@node hello.js
 
 node:
 	wasm-pack build --target=nodejs --out-dir=./fcbl-nodejs

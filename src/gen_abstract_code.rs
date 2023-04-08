@@ -189,11 +189,11 @@ impl<'a> DataDescription<'a> {
                     pic,
                     signed,
                     scale,
-                } => "wasm.TYPE_NUMERIC_DISPLAY",
-                Picture::Alphanumeric { pic, len } => "wasm.TYPE_ALPHANUMERIC",
+                } => "TYPE_NUMERIC_DISPLAY",
+                Picture::Alphanumeric { pic, len } => "TYPE_ALPHANUMERIC",
             }
         } else {
-            "wasm.TYPE_ALPHANUMERIC"
+            "TYPE_ALPHANUMERIC"
         }
     }
 
@@ -230,7 +230,7 @@ impl<'a> DataDescription<'a> {
     }
 
     pub fn get_flags_string(&self) -> &'a str {
-        "wasm.FLAG_NONE"
+        "FLAG_NONE"
     }
 
     pub fn get_pic(&self) -> &'a str {
@@ -262,15 +262,15 @@ fn abstract_code_of_data_description_tree_and_size<'a>(
                 let data_size = child.get_data_size();
                 code.push(AbstractCode::LetField(
                     child.entry_name,
-                    AbstractExpr::Func(
-                        "core.register_field",
+                    AbstractExpr::LibCoreFunc(
+                        "register_field",
                         vec![
                             AbstractExpr::UInt(total_data_size),
                             AbstractExpr::UInt(data_size),
-                            AbstractExpr::Identifier(child.get_type()),
+                            AbstractExpr::LibIdentifier(child.get_type()),
                             AbstractExpr::UInt(child.get_digits()),
                             AbstractExpr::Int(child.get_scale()),
-                            AbstractExpr::Identifier(child.get_flags_string()),
+                            AbstractExpr::LibIdentifier(child.get_flags_string()),
                             AbstractExpr::Str(child.get_pic()),
                         ],
                     ),
@@ -305,13 +305,7 @@ pub fn generate_abstract_code<'a>(
         Some(Ok(ref tree)) => abstract_code_of_data_description_tree_and_size(&tree),
     };
 
-    let initialize_core_code = AbstractCode::Let(
-        "core",
-        AbstractExpr::Func(
-            "wasm.CobolCore.new",
-            vec![AbstractExpr::UInt(total_data_size)],
-        ),
-    );
+    let initialize_core_code = AbstractCode::GetNewCore(total_data_size);
 
     let mut initialize_data_code = Vec::new();
     match data_tree {
@@ -320,10 +314,10 @@ pub fn generate_abstract_code<'a>(
         Some(Ok(tree)) => {
             for child in tree.children(tree.root().unwrap()).iter() {
                 let initial_bytes = child.get_initial_bytes();
-                initialize_data_code.push(AbstractCode::Expr(AbstractExpr::Func(
+                initialize_data_code.push(AbstractCode::Expr(AbstractExpr::LibCoreFunc(
                     match initial_bytes {
-                        ByteArrayData::String(_) => "core.set_string",
-                        ByteArrayData::Bytes(_) => "core.set_bytes",
+                        ByteArrayData::String(_) => "set_string",
+                        ByteArrayData::Bytes(_) => "set_bytes",
                     },
                     vec![
                         AbstractExpr::FieldIdentifier(child.entry_name),
@@ -365,8 +359,8 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode<'a>> {
         st.dsts
             .iter()
             .map(|dst| {
-                AbstractCode::Expr(AbstractExpr::Func(
-                    "core.move_field",
+                AbstractCode::Expr(AbstractExpr::LibCoreFunc(
+                    "move_field",
                     vec![
                         //TODO avoid invoking same procedure many times
                         AbstractExpr::FieldIdentifier(st.srcs[0]),
@@ -381,7 +375,7 @@ fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode<'a>> {
             .zip(st.dsts.iter())
             .map(|(src, dst)| {
                 AbstractCode::Expr(AbstractExpr::Func(
-                    "core.move_field",
+                    "move_field",
                     vec![
                         AbstractExpr::FieldIdentifier(src),
                         AbstractExpr::FieldIdentifier(dst),
@@ -405,10 +399,10 @@ fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode<
     st.args
         .iter()
         .map(|arg| {
-            AbstractCode::Expr(AbstractExpr::Func(
-                "console.log",
-                vec![AbstractExpr::Func(
-                    "core.field_as_string",
+            AbstractCode::Expr(AbstractExpr::LibFunc(
+                "display",
+                vec![AbstractExpr::LibCoreFunc(
+                    "field_as_string",
                     vec![AbstractExpr::FieldIdentifier(arg)],
                 )],
             ))

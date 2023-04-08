@@ -4,7 +4,7 @@ use crate::abstract_code::{self, AbstractCode, AbstractExpr};
 pub fn generate_code(target: TranslateLanguage, abstract_code_list: &Vec<AbstractCode>) -> String {
     let header = match target {
         TranslateLanguage::NodeJS => {
-            r#"const wasm = require("./fcbl-nodejs");
+            r#"const cb_lib = require("./fcbl_lib");
 "#
         }
         _ => {
@@ -23,6 +23,9 @@ pub fn generate_code(target: TranslateLanguage, abstract_code_list: &Vec<Abstrac
             AbstractCode::LetField(var_name, expr) => {
                 format!("let field_{} = {};", var_name, expr_to_string(expr))
             }
+            AbstractCode::GetNewCore(size) => {
+                format!("let cb_core = cb_lib.get_fcbl_core({});", size)
+            }
         })
         .collect();
     header + &lines.join("\n")
@@ -32,6 +35,7 @@ fn expr_to_string(expr: &AbstractExpr) -> String {
     match expr {
         AbstractExpr::FieldIdentifier(s) => format!("field_{}", s),
         AbstractExpr::Identifier(s) => s.to_string(),
+        AbstractExpr::LibIdentifier(s) => format!("cb_lib.{}", s.to_string()),
         AbstractExpr::Int(i) => i.to_string(),
         AbstractExpr::UInt(u) => u.to_string(),
         // TODO escape ", \n, ... etc
@@ -47,6 +51,22 @@ fn expr_to_string(expr: &AbstractExpr) -> String {
         ),
         AbstractExpr::Func(name, args) => format!(
             "{} ({})",
+            name,
+            args.iter()
+                .map(|arg| expr_to_string(arg))
+                .collect::<Vec<String>>()
+                .join(", ")
+        ),
+        AbstractExpr::LibFunc(name, args) => format!(
+            "cb_lib.{} ({})",
+            name,
+            args.iter()
+                .map(|arg| expr_to_string(arg))
+                .collect::<Vec<String>>()
+                .join(", ")
+        ),
+        AbstractExpr::LibCoreFunc(name, args) => format!(
+            "cb_lib.{} (cb_core, {})",
             name,
             args.iter()
                 .map(|arg| expr_to_string(arg))

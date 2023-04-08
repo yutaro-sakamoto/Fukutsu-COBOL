@@ -96,6 +96,33 @@ impl CobolCore {
             _ => "".to_string(),
         }
     }
+
+    pub fn set_bytes(&mut self, field_id: FieldId, bytes: &[u8]) -> bool {
+        match self.fields.get(field_id) {
+            Some(field) => {
+                let m = min(field.len, bytes.len());
+                for i in 0..m {
+                    self.data[field.start_index + i] = bytes[i];
+                }
+                true
+            }
+            _ => false,
+        }
+    }
+
+    pub fn set_string(&mut self, field_id: FieldId, s: String) -> bool {
+        match self.fields.get(field_id) {
+            Some(field) => {
+                let bytes = s.as_bytes();
+                let m = min(field.len, bytes.len());
+                for i in 0..m {
+                    self.data[field.start_index + i] = bytes[i];
+                }
+                true
+            }
+            _ => false,
+        }
+    }
 }
 
 /// This struct represens a COBOL data

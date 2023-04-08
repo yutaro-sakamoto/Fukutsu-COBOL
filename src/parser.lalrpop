@@ -68,7 +68,11 @@ DataDescription: DataDescription<'input> = {
 
 DataDescriptionClause: DataDescriptionClause<'input> = {
     PIC <Picture> => DataDescriptionClause::Picture(<>),
-    VALUE <StrLiteral> => DataDescriptionClause::Value(<>.to_string()),
+    VALUE <StrLiteral> => {
+        let s = <>;
+        let ss = s[1..s.len()-1].to_string();
+        DataDescriptionClause::Value(ss.to_string())
+    }
 }
 
 ProcedureDivision: ProcedureDivision<'input> = {

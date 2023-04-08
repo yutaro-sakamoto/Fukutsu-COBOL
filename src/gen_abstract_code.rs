@@ -110,9 +110,10 @@ fn get_data_tree<'a>(
     Ok(tree)
 }
 
-pub enum LiteralData {
-    Printable(String),
+#[derive(Clone, Debug)]
+pub enum ByteArrayData {
     Bytes(Vec<u8>),
+    String(String),
 }
 
 impl<'a> DataDescription<'a> {
@@ -132,7 +133,22 @@ impl<'a> DataDescription<'a> {
         }
     }
 
-    pub fn get_initial_bytes(&self) -> Vec<u8> {
+    fn bytes_to_str_if_printable(bytes: &Vec<u8>) -> ByteArrayData {
+        let mut printable = true;
+        for b in bytes {
+            if !b.is_ascii_graphic() {
+                printable = false;
+                break;
+            }
+        }
+        if printable {
+            ByteArrayData::String(String::from_utf8(bytes.to_vec()).unwrap())
+        } else {
+            ByteArrayData::Bytes(bytes.clone())
+        }
+    }
+
+    pub fn get_initial_bytes(&self) -> ByteArrayData {
         if let (Some(value), Some(pic)) = (self.get_value_clause(), self.get_picture()) {
             let bytes = value.as_bytes();
             match pic {
@@ -143,25 +159,25 @@ impl<'a> DataDescription<'a> {
                     scale,
                 } => {
                     if bytes.len() > digits as usize {
-                        bytes[0..digits as usize].to_vec()
+                        Self::bytes_to_str_if_printable(&bytes[0..digits as usize].to_vec())
                     } else {
                         let mut ret = vec!['0' as u8; digits as usize - bytes.len()];
                         ret.extend(bytes.to_vec());
-                        ret
+                        Self::bytes_to_str_if_printable(&ret)
                     }
                 }
                 Picture::Alphanumeric { len, pic } => {
                     if bytes.len() > len as usize {
-                        bytes[0..len as usize].to_vec()
+                        Self::bytes_to_str_if_printable(&bytes[0..len as usize].to_vec())
                     } else {
                         let mut ret = vec!['0' as u8; len as usize - bytes.len()];
                         ret.extend(bytes.to_vec());
-                        ret
+                        Self::bytes_to_str_if_printable(&ret.to_vec())
                     }
                 }
             }
         } else {
-            Vec::new()
+            ByteArrayData::String("".to_string())
         }
     }
 
@@ -234,17 +250,17 @@ impl<'a> DataDescription<'a> {
     }
 }
 
-fn abstract_code_of_data_description_tree<'a>(
+fn abstract_code_of_data_description_tree_and_size<'a>(
     tree: &Tree<&DataDescription<'a>>,
-) -> Vec<AbstractCode<'a>> {
+) -> (Vec<AbstractCode<'a>>, u32) {
     match tree.root() {
-        None => Vec::new(),
+        None => (Vec::new(), 0),
         Some(root_id) => {
             let mut total_data_size = 0;
             let mut code = Vec::new();
             for child in tree.children(root_id).iter() {
                 let data_size = child.get_data_size();
-                code.push(AbstractCode::Let(
+                code.push(AbstractCode::LetField(
                     child.entry_name,
                     AbstractExpr::Func(
                         "core.register_field",
@@ -255,13 +271,13 @@ fn abstract_code_of_data_description_tree<'a>(
                             AbstractExpr::UInt(child.get_digits()),
                             AbstractExpr::Int(child.get_scale()),
                             AbstractExpr::Identifier(child.get_flags_string()),
-                            AbstractExpr::String(child.get_pic()),
+                            AbstractExpr::Str(child.get_pic()),
                         ],
                     ),
                 ));
                 total_data_size += data_size
             }
-            code
+            (code, total_data_size)
         }
     }
 }
@@ -283,10 +299,42 @@ pub fn generate_abstract_code<'a>(
         None => None,
     };
 
-    let data_initialization_code = match data_tree {
-        None => Vec::new(),
+    let (construct_data_code, total_data_size) = match data_tree {
+        None => (Vec::new(), 0),
         Some(Err(e)) => return Err(e),
-        Some(Ok(tree)) => abstract_code_of_data_description_tree(&tree),
+        Some(Ok(ref tree)) => abstract_code_of_data_description_tree_and_size(&tree),
+    };
+
+    let initialize_core_code = AbstractCode::Let(
+        "core",
+        AbstractExpr::Func(
+            "wasm.CobolCore.new",
+            vec![AbstractExpr::UInt(total_data_size)],
+        ),
+    );
+
+    let mut initialize_data_code = Vec::new();
+    match data_tree {
+        None => (),
+        Some(Err(e)) => return Err(e),
+        Some(Ok(tree)) => {
+            for child in tree.children(tree.root().unwrap()).iter() {
+                let initial_bytes = child.get_initial_bytes();
+                initialize_data_code.push(AbstractCode::Expr(AbstractExpr::Func(
+                    match initial_bytes {
+                        ByteArrayData::String(_) => "core.set_string",
+                        ByteArrayData::Bytes(_) => "core.set_bytes",
+                    },
+                    vec![
+                        AbstractExpr::FieldIdentifier(child.entry_name),
+                        match initial_bytes {
+                            ByteArrayData::String(s) => AbstractExpr::String(s),
+                            ByteArrayData::Bytes(b) => AbstractExpr::Bytes(b),
+                        },
+                    ],
+                )));
+            }
+        }
     };
 
     let procedure_division_code = match &program.procedure_division {
@@ -304,7 +352,9 @@ pub fn generate_abstract_code<'a>(
         None => Vec::new(),
     };
 
-    code.extend(data_initialization_code);
+    code.push(initialize_core_code);
+    code.extend(construct_data_code);
+    code.extend(initialize_data_code);
     code.extend(procedure_division_code);
 
     Ok(code.clone())

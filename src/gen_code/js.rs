@@ -8,7 +8,9 @@ pub fn generate_code(target: TranslateLanguage, abstract_code_list: &Vec<Abstrac
 "#
         }
         _ => {
-            r#"import * as wasm from "fukutsu-cobol";
+            r#"import * as cb_lib from "fukutsu-cobol";
+
+export function cb_run() {
 "#
         }
     }
@@ -28,7 +30,18 @@ pub fn generate_code(target: TranslateLanguage, abstract_code_list: &Vec<Abstrac
             }
         })
         .collect();
-    header + &lines.join("\n")
+    match target {
+        TranslateLanguage::NodeJS => header + &lines.join("\n"),
+        _ => {
+            header
+                + &lines
+                    .iter()
+                    .map(|line| format!("  {}", line))
+                    .collect::<Vec<String>>()
+                    .join("\n")
+                + "\n}\n"
+        }
+    }
 }
 
 fn expr_to_string(expr: &AbstractExpr) -> String {

@@ -338,7 +338,9 @@ pub fn generate_abstract_code<'a>(
             .map(|x| match x {
                 LabelStatement::Statement(Statement::Move(st)) => convert_move_statement(st),
                 LabelStatement::Statement(Statement::Display(st)) => convert_display_statement(st),
-                _ => Vec::new(),
+                LabelStatement::Statement(Statement::Accept(st)) => convert_accept_statement(st),
+                LabelStatement::Label(_) => Vec::new(),
+                LabelStatement::Section(_) => Vec::new(),
             })
             .into_iter()
             .flatten()
@@ -352,6 +354,13 @@ pub fn generate_abstract_code<'a>(
     code.extend(procedure_division_code);
 
     Ok(code.clone())
+}
+
+fn convert_accept_statement<'a>(st: &AcceptStatement<'a>) -> Vec<AbstractCode<'a>> {
+    vec![AbstractCode::Expr(AbstractExpr::LibCoreFunc(
+        "accept",
+        vec![AbstractExpr::FieldIdentifier(st.arg)],
+    ))]
 }
 
 fn convert_move_statement<'a>(st: &MoveStatement<'a>) -> Vec<AbstractCode<'a>> {

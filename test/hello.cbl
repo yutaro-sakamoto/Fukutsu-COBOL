@@ -6,6 +6,8 @@
        01 ab PIC xx value "ab".
        01 cd pic xx value "cd".
        procedure division.
+       DisPlay cd.
        move ab to cd.
+       accept ab.
        DisPlay cd.
        DisPlay ab.

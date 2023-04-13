@@ -27,3 +27,8 @@ module.exports.field_as_string = function (core, field) {
 module.exports.display = function (field) {
     console.log(field);
 }
+
+module.exports.accept = function (core, field) {
+    const value = require("fs").readFileSync("/dev/stdin", "utf8");
+    core.set_string(field, value);
+}

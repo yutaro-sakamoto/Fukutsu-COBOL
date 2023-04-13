@@ -58,6 +58,7 @@ pub enum LabelStatement<'a> {
 pub enum Statement<'a> {
     Move(MoveStatement<'a>),
     Display(DisplayStatement<'a>),
+    Accept(AcceptStatement<'a>),
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
@@ -69,6 +70,11 @@ pub struct MoveStatement<'a> {
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct DisplayStatement<'a> {
     pub args: Vec<&'a str>,
+}
+
+#[derive(PartialEq, Clone, Eq, Debug)]
+pub struct AcceptStatement<'a> {
+    pub arg: &'a str,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]

@@ -91,6 +91,7 @@ LabelStatement: LabelStatement<'input> = {
 Statement: Statement<'input> = {
     <MoveStatement> => Statement::Move(<>),
     <DisplayStatement> => Statement::Display(<>),
+    <AcceptStatement> => Statement::Accept(<>),
 }
 
 MoveStatement: MoveStatement<'input> = {
@@ -113,6 +114,13 @@ DisplayStatement: DisplayStatement<'input> = {
     }
 }
 
+AcceptStatement: AcceptStatement<'input> = {
+    ACCEPT <Identifier> =>
+    AcceptStatement {
+        arg: <>
+    }
+}
+
 pub Picture: Picture<'input> = {
     <PIC_X> => Picture::Alphanumeric{ pic: <>, len: size_pic_with_brackets(<>)}
     //<PIC_LEADING_P_9>=>  parse_pic_9_leading_p(<>),
@@ -121,6 +129,7 @@ pub Picture: Picture<'input> = {
 }
 
 match {
+    r"[aA][cC][cC][eE][pP][tT]" => ACCEPT,
     r"[iI][dD][eE][nN][tT][iI][fF][iI][cC][aA][tT][iI][oO][nN]" => IDENTIFICATION,
     r"[dD][iI][vV][iI][sS][iI][oO][nN]" => DIVISION,
     r"[pP][rR][oO][gG][rR][aA][mM]-[iI][dD]" => PROGRAM_ID,

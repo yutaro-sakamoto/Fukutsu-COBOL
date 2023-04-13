@@ -29,6 +29,5 @@ module.exports.display = function (field) {
 }
 
 module.exports.accept = function (core, field) {
-    const value = require("fs").readFileSync("/dev/stdin", "utf8");
-    core.set_string(field, value);
+    console.log("accept statement is called with field argument " + field)
 }

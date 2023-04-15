@@ -339,6 +339,7 @@ pub fn generate_abstract_code<'a>(
                 LabelStatement::Statement(Statement::Move(st)) => convert_move_statement(st),
                 LabelStatement::Statement(Statement::Display(st)) => convert_display_statement(st),
                 LabelStatement::Statement(Statement::Accept(st)) => convert_accept_statement(st),
+                LabelStatement::Statement(Statement::Goto(st)) => convert_goto_statement(st),
                 LabelStatement::Label(_) => Vec::new(),
                 LabelStatement::Section(_) => Vec::new(),
             })
@@ -417,4 +418,8 @@ fn convert_display_statement<'a>(st: &DisplayStatement<'a>) -> Vec<AbstractCode<
             ))
         })
         .collect()
+}
+
+fn convert_goto_statement<'a>(st: &GotoStatement<'a>) -> Vec<AbstractCode<'a>> {
+    vec![AbstractCode::LineComment(format!("go to {}", st.label))]
 }

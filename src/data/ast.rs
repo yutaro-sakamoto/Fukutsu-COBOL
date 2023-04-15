@@ -59,6 +59,7 @@ pub enum Statement<'a> {
     Move(MoveStatement<'a>),
     Display(DisplayStatement<'a>),
     Accept(AcceptStatement<'a>),
+    Goto(GotoStatement<'a>),
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]
@@ -75,6 +76,11 @@ pub struct DisplayStatement<'a> {
 #[derive(PartialEq, Clone, Eq, Debug)]
 pub struct AcceptStatement<'a> {
     pub arg: &'a str,
+}
+
+#[derive(PartialEq, Clone, Eq, Debug)]
+pub struct GotoStatement<'a> {
+    pub label: &'a str,
 }
 
 #[derive(PartialEq, Clone, Eq, Debug)]

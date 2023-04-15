@@ -28,6 +28,7 @@ export function cb_run() {
             AbstractCode::GetNewCore(size) => {
                 format!("let cb_core = cb_lib.get_fcbl_core({});", size)
             }
+            AbstractCode::LineComment(comment) => format!("// {}", comment),
         })
         .collect();
     match target {

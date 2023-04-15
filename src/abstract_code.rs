@@ -4,6 +4,7 @@ pub enum AbstractCode<'a> {
     LetField(&'a str, AbstractExpr<'a>),
     Expr(AbstractExpr<'a>),
     GetNewCore(u32),
+    LineComment(String),
 }
 
 #[derive(Clone, Debug)]

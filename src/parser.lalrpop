@@ -92,6 +92,7 @@ Statement: Statement<'input> = {
     <MoveStatement> => Statement::Move(<>),
     <DisplayStatement> => Statement::Display(<>),
     <AcceptStatement> => Statement::Accept(<>),
+    <GotoStatement> => Statement::Goto(<>),
 }
 
 MoveStatement: MoveStatement<'input> = {
@@ -121,6 +122,13 @@ AcceptStatement: AcceptStatement<'input> = {
     }
 }
 
+GotoStatement: GotoStatement<'input> = {
+    GO TO <Identifier> =>
+    GotoStatement {
+        label: <>
+    }
+}
+
 pub Picture: Picture<'input> = {
     <PIC_X> => Picture::Alphanumeric{ pic: <>, len: size_pic_with_brackets(<>)}
     //<PIC_LEADING_P_9>=>  parse_pic_9_leading_p(<>),
@@ -137,6 +145,7 @@ match {
     r"\." => DOT,
     r"[eE][nN][vV][iI][rR][oO][nN][mM][eE][nN][tT]" => ENVIRONMENT,
     r"[dD][aA][tT][aA]" => DATA,
+    r"[gG][oO]" => GO,
     r"[wW][oO][rR][kK][iI][nN][gG]-[sS][tT][oO][rR][aA][gG][eE]" => WORKING_STORAGE,
     r"[sS][eE][cC][tT][iI][oO][nN]" => SECTION,
     r"[pP][iI][cC]" => PIC,

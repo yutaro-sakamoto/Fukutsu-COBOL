@@ -123,9 +123,9 @@ AcceptStatement: AcceptStatement<'input> = {
 }
 
 GotoStatement: GotoStatement<'input> = {
-    GO TO <Identifier> =>
+    GO TO? <l:Identifier> =>
     GotoStatement {
-        label: <>
+        label: l
     }
 }
 
